@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category_label }} Species · Endcount{% endblock %}
+
+{% block content %}
+<div class="index-header">
+  <h1 class="index-title">{{ category_label }}</h1>
+</div>
+
+<nav class="category-nav">
+  {% for code, label in categories %}
+  <a href="/?category={{ code }}" class="category-pill {% if code == category %}active{% endif %}">
+    <span class="category-dot cat-{{ code }}"></span>{{ label }}
+  </a>
+  {% endfor %}
+</nav>
+
+<div class="species-grid">
+  {% for item in assessments %}
+  <a href="/species/{{ item.assessment_id }}?from={{ category }}" class="species-card">
+    <div class="species-card-inner">
+      <span class="card-category cat-{{ item.red_list_category_code }}">{{ item.red_list_category_code }}</span>
+      <h2 class="card-title">{{ item.common_name or item.taxon_scientific_name }}</h2>
+      {% if item.common_name %}
+      <p class="card-scientific">{{ item.taxon_scientific_name }}</p>
+      {% endif %}
+      <p class="card-year">{{ item.year_published }}</p>
+    </div>
+  </a>
+  {% else %}
+  <p class="empty-state">No species found for this category.</p>
+  {% endfor %}
+</div>
+
+{% if page > 1 or has_next %}
+<nav class="pagination">
+  {% if page > 1 %}
+  <a href="/?category={{ category }}&page={{ page - 1 }}" class="page-btn">&#8592; Previous</a>
+  {% endif %}
+  <span class="page-info">Page {{ page }}</span>
+  {% if has_next %}
+  <a href="/?category={{ category }}&page={{ page + 1 }}" class="page-btn">Next &#8594;</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

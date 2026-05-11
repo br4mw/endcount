@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ name }} · Endcount</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+  <script>
+    window.ASSESSMENT_ID = {{ assessment_id }};
+    window.CATEGORY_CODE = {{ category_code | tojson }};
+    window.ANIMAL_CLASS  = {{ animal_class | tojson }};
+    window.HAS_IMAGE     = {{ has_image | tojson }};
+  </script>
+  <script type="importmap">
+  {"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+
+    #photo-bg {
+      position: fixed; inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      filter: blur(3px) brightness(0.45) saturate(1.3);
+    }
+
+    #canvas-container {
+      position: fixed; inset: 0;
+    }
+    #canvas-container canvas { display: block; }
+
+    #overlay {
+      position: fixed; inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 2.5rem 3rem;
+      pointer-events: none;
+    }
+
+    #species-name {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(1.8rem, 5vw, 3.8rem);
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.88);
+      letter-spacing: 0.03em;
+      line-height: 1.1;
+    }
+
+    #species-sci {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(0.95rem, 2vw, 1.35rem);
+      font-weight: 300;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.45);
+      margin-top: 0.35rem;
+      letter-spacing: 0.02em;
+    }
+
+    #species-cat {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 0.7rem;
+    }
+
+    #back-link {
+      position: fixed;
+      top: 2rem; left: 2.5rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      transition: color 0.25s;
+    }
+    #back-link:hover { color: rgba(255, 255, 255, 0.85); }
+
+    #mode-label {
+      position: fixed;
+      top: 2rem; right: 2.5rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div id="photo-bg"></div>
+  <div id="canvas-container"></div>
+
+  <div id="overlay">
+    <h1 id="species-name">{{ name }}</h1>
+    {% if scientific_name and scientific_name != name %}
+    <p id="species-sci">{{ scientific_name }}</p>
+    {% endif %}
+    <p id="species-cat">{{ category_label }}</p>
+  </div>
+
+  <a id="back-link" href="/species/{{ assessment_id }}">&#8592; Back to species</a>
+  <div id="mode-label">{{ animal_class }}</div>
+
+  <script type="module" src="{{ url_for('static', filename='particles.js') }}"></script>
+</body>
+</html>
