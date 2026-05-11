@@ -393,6 +393,17 @@ def index():
     )
 
 
+def _extract_trend(raw):
+    if not raw:
+        return None
+    if isinstance(raw, str):
+        return raw
+    if isinstance(raw, dict):
+        desc = raw.get("description", {})
+        return desc.get("en") or next(iter(desc.values()), None)
+    return None
+
+
 @app.route("/species/<int:assessment_id>")
 def species(assessment_id):
     try:
@@ -457,7 +468,7 @@ def species(assessment_id):
         category_code=category_code,
         category_label=category_label,
         year=assessment.get("year_published", ""),
-        trend=assessment.get("population_trend"),
+        trend=_extract_trend(assessment.get("population_trend")),
         supp=supp,
         back_category=request.args.get("from", "EX"),
         has_art=art["has_sprite"],
