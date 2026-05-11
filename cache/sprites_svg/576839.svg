@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g fill="#000000">
+    <!-- Main globular cactus body -->
+    <ellipse cx="100" cy="115" rx="62" ry="68"/>
+    <!-- Ribs as subtle lobes on the outline - achieved via path -->
+    <!-- Override with ribbed path -->
+    <path d="
+      M 100 47
+      C 108 44, 118 48, 124 52
+      C 130 56, 138 54, 143 60
+      C 150 66, 158 72, 160 82
+      C 163 90, 165 100, 163 110
+      C 161 122, 158 132, 152 140
+      C 145 150, 136 158, 124 163
+      C 116 167, 108 170, 100 170
+      C 92 170, 84 167, 76 163
+      C 64 158, 55 150, 48 140
+      C 42 132, 39 122, 37 110
+      C 35 100, 37 90, 40 82
+      C 42 72, 50 66, 57 60
+      C 62 54, 70 56, 76 52
+      C 82 48, 92 44, 100 47Z
+    "/>
+    <!-- Spines radiating from areoles on ribs -->
+    <!-- Top cluster -->
+    <ellipse cx="100" cy="52" rx="8" ry="6"/>
+    <!-- Top spine cluster -->
+    <rect x="98" y="30" width="4" height="22" rx="2"/>
+    <rect x="86" y="33" width="3" height="20" rx="1.5" transform="rotate(-25 88 43)"/>
+    <rect x="112" y="33" width="3" height="20" rx="1.5" transform="rotate(25 112 43)"/>
+    <!-- Left upper spines -->
+    <rect x="58" y="68" width="3" height="18" rx="1.5" transform="rotate(-60 60 72)"/>
+    <rect x="52" y="82" width="3" height="18" rx="1.5" transform="rotate(-80 53 85)"/>
+    <!-- Right upper spines -->
+    <rect x="139" y="68" width="3" height="18" rx="1.5" transform="rotate(60 140 72)"/>
+    <rect x="145" y="82" width="3" height="18" rx="1.5" transform="rotate(80 147 85)"/>
+    <!-- Left mid spines -->
+    <rect x="40" y="100" width="3" height="18" rx="1.5" transform="rotate(-90 41 105)"/>
+    <rect x="43" y="118" width="3" height="18" rx="1.5" transform="rotate(-80 44 122)"/>
+    <!-- Right mid spines -->
+    <rect x="157" y="100" width="3" height="18" rx="1.5" transform="rotate(90 158 105)"/>
+    <rect x="154" y="118" width="3" height="18" rx="1.5" transform="rotate(80 155 122)"/>
+    <!-- Lower spines -->
+    <rect x="60" y="145" width="3" height="16" rx="1.5" transform="rotate(-50 62 150)"/>
+    <rect x="75" y="158" width="3" height="16" rx="1.5" transform="rotate(-20 77 163)"/>
+    <rect x="125" y="158" width="3" height="16" rx="1.5" transform="rotate(20 127 163)"/>
+    <rect x="137" y="145" width="3" height="16" rx="1.5" transform="rotate(50 139 150)"/>
+    <!-- Base/ground shadow to show it sits on ground -->
+    <ellipse cx="100" cy="170" rx="55" ry="8"/>
+  </g>
+</svg>

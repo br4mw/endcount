@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g fill="#000000">
+    <!-- Main central stem -->
+    <ellipse cx="100" cy="140" rx="12" ry="35"/>
+    <!-- Left branch lower -->
+    <ellipse cx="72" cy="145" rx="10" ry="28" transform="rotate(-15 72 145)"/>
+    <!-- Right branch lower -->
+    <ellipse cx="128" cy="145" rx="10" ry="28" transform="rotate(15 128 145)"/>
+    <!-- Left branch upper -->
+    <ellipse cx="65" cy="118" rx="9" ry="26" transform="rotate(-25 65 118)"/>
+    <!-- Right branch upper -->
+    <ellipse cx="135" cy="118" rx="9" ry="26" transform="rotate(25 135 118)"/>
+    <!-- Center top segment -->
+    <ellipse cx="100" cy="108" rx="10" ry="30"/>
+    <!-- Far left small branch -->
+    <ellipse cx="50" cy="130" rx="8" ry="20" transform="rotate(-35 50 130)"/>
+    <!-- Far right small branch -->
+    <ellipse cx="150" cy="130" rx="8" ry="20" transform="rotate(35 150 130)"/>
+    <!-- Top left terminal pad -->
+    <ellipse cx="78" cy="92" rx="8" ry="22" transform="rotate(-20 78 92)"/>
+    <!-- Top right terminal pad -->
+    <ellipse cx="122" cy="92" rx="8" ry="22" transform="rotate(20 122 92)"/>
+    <!-- Apex segment -->
+    <ellipse cx="100" cy="82" rx="8" ry="20"/>
+    <!-- Base/ground connection -->
+    <ellipse cx="100" cy="172" rx="30" ry="8"/>
+    <!-- Spines on main stem -->
+    <polygon points="100,105 97,95 103,95"/>
+    <polygon points="88,130 82,122 86,120"/>
+    <polygon points="112,130 118,122 114,120"/>
+    <polygon points="100,118 97,108 103,108"/>
+    <!-- Spines left branch -->
+    <polygon points="68,128 60,122 63,120"/>
+    <polygon points="62,110 54,106 56,103"/>
+    <!-- Spines right branch -->
+    <polygon points="132,128 140,122 137,120"/>
+    <polygon points="138,110 146,106 144,103"/>
+    <!-- Top spines -->
+    <polygon points="100,65 97,55 103,55"/>
+    <polygon points="82,78 76,70 80,68"/>
+    <polygon points="118,78 124,70 120,68"/>
+    <!-- Far branch spines -->
+    <polygon points="48,118 40,113 42,111"/>
+    <polygon points="152,118 160,113 158,111"/>
+    <!-- Additional spines for texture -->
+    <polygon points="90,155 86,147 89,146"/>
+    <polygon points="110,155 114,147 111,146"/>
+    <polygon points="75,162 70,155 73,154"/>
+    <polygon points="125,162 130,155 127,154"/>
+  </g>
+</svg>

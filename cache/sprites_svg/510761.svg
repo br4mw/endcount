@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g fill="#000000">
+    <!-- Body (elongated abdomen) -->
+    <ellipse cx="100" cy="110" rx="4" ry="55"/>
+    <!-- Thorax -->
+    <ellipse cx="100" cy="75" rx="7" ry="10"/>
+    <!-- Head -->
+    <ellipse cx="100" cy="60" rx="9" ry="7"/>
+    <!-- Eyes (compound, bulging) -->
+    <ellipse cx="93" cy="57" rx="5" ry="4"/>
+    <ellipse cx="107" cy="57" rx="5" ry="4"/>
+    <!-- Upper wings (long, narrow damselfly wings held back along body) -->
+    <!-- Left upper wing -->
+    <path d="M96,72 C80,65 30,55 20,62 C18,63 20,67 25,67 C50,65 80,72 93,78 Z"/>
+    <!-- Right upper wing -->
+    <path d="M104,72 C120,65 170,55 180,62 C182,63 180,67 175,67 C150,65 120,72 107,78 Z"/>
+    <!-- Left lower wing -->
+    <path d="M96,78 C78,73 28,68 18,75 C16,77 18,81 23,80 C50,76 80,78 93,84 Z"/>
+    <!-- Right lower wing -->
+    <path d="M104,78 C122,73 172,68 182,75 C184,77 182,81 177,80 C150,76 120,78 107,84 Z"/>
+    <!-- Abdomen segments hint -->
+    <rect x="97" y="90" width="6" height="1.5" rx="0.5"/>
+    <rect x="97" y="100" width="6" height="1.5" rx="0.5"/>
+    <rect x="97" y="110" width="6" height="1.5" rx="0.5"/>
+    <rect x="97" y="120" width="6" height="1.5" rx="0.5"/>
+    <rect x="97" y="130" width="6" height="1.5" rx="0.5"/>
+    <!-- Tail tip -->
+    <ellipse cx="100" cy="163" rx="3.5" ry="5"/>
+  </g>
+</svg>

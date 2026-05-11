@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g fill="#000000">
+    <!-- Main globular/cylindrical cactus body -->
+    <ellipse cx="100" cy="115" rx="62" ry="70"/>
+    <!-- Rib ridges to give the ribbed cactus appearance -->
+    <!-- Central top dome -->
+    <ellipse cx="100" cy="50" rx="30" ry="18"/>
+    <!-- Spine clusters - characteristic spines radiating outward -->
+    <!-- Left side spines -->
+    <ellipse cx="42" cy="90" rx="12" ry="4" transform="rotate(-30 42 90)"/>
+    <ellipse cx="38" cy="115" rx="13" ry="4" transform="rotate(0 38 115)"/>
+    <ellipse cx="42" cy="140" rx="12" ry="4" transform="rotate(25 42 140)"/>
+    <!-- Right side spines -->
+    <ellipse cx="158" cy="90" rx="12" ry="4" transform="rotate(30 158 90)"/>
+    <ellipse cx="162" cy="115" rx="13" ry="4" transform="rotate(0 162 115)"/>
+    <ellipse cx="158" cy="140" rx="12" ry="4" transform="rotate(-25 158 140)"/>
+    <!-- Top spines -->
+    <ellipse cx="100" cy="35" rx="4" ry="14"/>
+    <ellipse cx="82" cy="38" rx="4" ry="12" transform="rotate(-20 82 38)"/>
+    <ellipse cx="118" cy="38" rx="4" ry="12" transform="rotate(20 118 38)"/>
+    <!-- Flower on top - characteristic golden/yellow flowers (shown as black silhouette) -->
+    <ellipse cx="100" cy="28" rx="18" ry="10"/>
+    <ellipse cx="84" cy="22" rx="9" ry="6" transform="rotate(-40 84 22)"/>
+    <ellipse cx="116" cy="22" rx="9" ry="6" transform="rotate(40 116 22)"/>
+    <ellipse cx="100" cy="16" rx="8" ry="6"/>
+    <ellipse cx="88" cy="14" rx="7" ry="5" transform="rotate(-20 88 14)"/>
+    <ellipse cx="112" cy="14" rx="7" ry="5" transform="rotate(20 112 14)"/>
+    <!-- Flower center -->
+    <ellipse cx="100" cy="22" rx="8" ry="8"/>
+    <!-- Rib definition lines as raised ridges -->
+    <rect x="97" y="45" width="6" height="65" rx="3"/>
+    <rect x="82" y="50" width="5" height="60" rx="2.5" transform="rotate(-8 84 80)"/>
+    <rect x="113" y="50" width="5" height="60" rx="2.5" transform="rotate(8 116 80)"/>
+    <rect x="67" y="60" width="5" height="55" rx="2.5" transform="rotate(-16 70 87)"/>
+    <rect x="128" y="60" width="5" height="55" rx="2.5" transform="rotate(16 130 87)"/>
+    <!-- Base/ground -->
+    <ellipse cx="100" cy="182" rx="55" ry="8"/>
+  </g>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g fill="#000000">
+    <!-- Main woody trunk/stem -->
+    <path d="M95 185 L95 140 Q93 130 88 120 L85 100 Q84 90 88 85 Q92 80 95 85 L95 75 Q94 60 90 50 Q87 42 90 38 Q93 34 97 38 Q100 42 100 50 L100 75 Q103 80 107 85 Q111 90 110 100 L107 120 Q102 130 100 140 L100 185 Z"/>
+    <!-- Branch left lower -->
+    <path d="M90 110 Q80 105 65 108 Q55 110 48 118 Q44 122 46 126 Q48 128 52 126 Q58 120 68 118 Q78 116 88 118 Z"/>
+    <!-- Branch right lower -->
+    <path d="M105 115 Q115 108 130 110 Q142 112 150 120 Q154 125 152 129 Q149 131 146 128 Q138 120 128 118 Q116 116 108 120 Z"/>
+    <!-- Branch left upper -->
+    <path d="M93 80 Q82 72 68 74 Q56 76 50 84 Q46 89 49 93 Q52 95 55 92 Q62 84 72 82 Q83 80 92 86 Z"/>
+    <!-- Branch right upper -->
+    <path d="M102 78 Q114 68 128 70 Q140 72 147 80 Q151 86 148 90 Q145 92 142 89 Q134 80 122 78 Q110 76 103 84 Z"/>
+    <!-- Leaf lower left -->
+    <ellipse cx="48" cy="120" rx="14" ry="9" transform="rotate(-20 48 120)"/>
+    <!-- Leaf lower right -->
+    <ellipse cx="150" cy="122" rx="14" ry="9" transform="rotate(20 150 122)"/>
+    <!-- Leaf upper left -->
+    <ellipse cx="50" cy="86" rx="13" ry="8" transform="rotate(-25 50 86)"/>
+    <!-- Leaf upper right -->
+    <ellipse cx="148" cy="83" rx="13" ry="8" transform="rotate(25 148 83)"/>
+    <!-- Extra leaves on branches -->
+    <ellipse cx="65" cy="115" rx="11" ry="7" transform="rotate(-10 65 115)"/>
+    <ellipse cx="132" cy="116" rx="11" ry="7" transform="rotate(10 132 116)"/>
+    <ellipse cx="68" cy="78" rx="11" ry="7" transform="rotate(-15 68 78)"/>
+    <ellipse cx="128" cy="76" rx="11" ry="7" transform="rotate(15 128 76)"/>
+    <!-- Flower at top - rose-like -->
+    <circle cx="98" cy="32" r="18"/>
+    <!-- Flower petals overlapping for rose shape -->
+    <ellipse cx="98" cy="16" rx="9" ry="12"/>
+    <ellipse cx="112" cy="22" rx="9" ry="12" transform="rotate(60 112 22)"/>
+    <ellipse cx="112" cy="40" rx="9" ry="12" transform="rotate(120 112 40)"/>
+    <ellipse cx="98" cy="48" rx="9" ry="12"/>
+    <ellipse cx="84" cy="40" rx="9" ry="12" transform="rotate(60 84 40)"/>
+    <ellipse cx="84" cy="22" rx="9" ry="12" transform="rotate(120 84 22)"/>
+    <!-- Stem leaves near top -->
+    <ellipse cx="97" cy="60" rx="10" ry="6" transform="rotate(-5 97 60)"/>
+  </g>
+</svg>

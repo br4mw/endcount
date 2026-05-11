@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g fill="#000000">
+    <!-- Body (elytra) - elongated oval -->
+    <ellipse cx="100" cy="115" rx="28" ry="42"/>
+    <!-- Pronotum (thorax) -->
+    <ellipse cx="100" cy="72" rx="22" ry="16"/>
+    <!-- Head -->
+    <ellipse cx="100" cy="55" rx="14" ry="11"/>
+    <!-- Left antenna - long and segmented, curving outward -->
+    <path d="M93,47 Q80,35 55,15 Q50,12 48,10 Q50,8 52,10 Q55,12 60,15 Q85,33 95,46 Z"/>
+    <!-- Right antenna -->
+    <path d="M107,47 Q120,35 145,15 Q150,12 152,10 Q154,8 152,10 Q150,12 145,15 Q120,33 105,46 Z"/>
+    <!-- Left front leg -->
+    <path d="M82,78 Q68,85 58,98 Q55,102 53,105 L55,106 Q57,103 60,99 Q70,87 84,80 Z"/>
+    <!-- Left mid leg -->
+    <path d="M80,98 Q65,105 52,118 Q48,122 46,126 L48,127 Q50,123 54,119 Q67,107 82,100 Z"/>
+    <!-- Left rear leg -->
+    <path d="M78,118 Q63,128 50,142 Q46,147 44,151 L46,152 Q48,148 52,143 Q65,130 80,120 Z"/>
+    <!-- Right front leg -->
+    <path d="M118,78 Q132,85 142,98 Q145,102 147,105 L145,106 Q143,103 140,99 Q130,87 116,80 Z"/>
+    <!-- Right mid leg -->
+    <path d="M120,98 Q135,105 148,118 Q152,122 154,126 L152,127 Q150,123 146,119 Q133,107 118,100 Z"/>
+    <!-- Right rear leg -->
+    <path d="M122,118 Q137,128 150,142 Q154,147 156,151 L154,152 Q152,148 148,143 Q135,130 120,120 Z"/>
+    <!-- Scutellum (small triangle between elytra and pronotum) -->
+    <path d="M95,85 L100,92 L105,85 Z"/>
+    <!-- Antenna base details -->
+    <circle cx="94" cy="48" r="3"/>
+    <circle cx="106" cy="48" r="3"/>
+  </g>
+</svg>
