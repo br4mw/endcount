@@ -186,10 +186,18 @@ def make_sprite_png(assessment_id):
 
 # ── Orchestrator ─────────────────────────────────────────────────────────────
 
+def art_status(assessment_id):
+    """Fast check of which art files exist — no generation, no API calls."""
+    has_image  = os.path.exists(os.path.join(IMG_DIR, f"{assessment_id}.png"))
+    has_sprite = os.path.exists(os.path.join(PNG_DIR, f"{assessment_id}.png"))
+    return {"has_image": has_image, "has_sprite": has_sprite}
+
+
 def prepare_species_art(scientific_name, assessment_id, common_name=None, taxonomy=None):
     """
-    Full pipeline. Returns:
-      { has_image, has_sprite, source_path, svg_path, sprite_png_path }
+    Full generation pipeline — intended to be called from a background thread.
+    All steps are idempotent: files are only written if they don't already exist.
+    Returns: { has_image, has_sprite, source_path, svg_path, sprite_png_path }
     """
     result = {
         "has_image": False,

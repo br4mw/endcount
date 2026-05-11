@@ -146,4 +146,21 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
 <script src="{{ url_for('static', filename='sketch.js') }}"></script>
 {% endif %}
+
+{% if generating %}
+<script>
+(function poll() {
+  fetch('/api/art-status/{{ assessment.assessment_id }}')
+    .then(r => r.json())
+    .then(s => {
+      if (s.has_sprite) {
+        window.location.reload();
+      } else if (s.generating) {
+        setTimeout(poll, 4000);
+      }
+    })
+    .catch(() => setTimeout(poll, 6000));
+})();
+</script>
+{% endif %}
 {% endblock %}

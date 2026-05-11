@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import threading
 import anthropic
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -40,6 +41,41 @@ CATEGORY_LABELS = {
 WILD_POPULATION_ZEROS = {"EX", "EW"}
 
 CATEGORY_ORDER = ["EX", "EW", "CR", "EN", "VU", "NT", "LC"]
+
+# ── Background art generation ─────────────────────────────────────────────────
+_art_executor   = ThreadPoolExecutor(max_workers=2)
+_generating     = set()   # assessment_ids currently being generated
+_generating_lock = threading.Lock()
+
+
+def _art_task(scientific_name, assessment_id, common_name, taxonomy):
+    try:
+        vec.prepare_species_art(
+            scientific_name, assessment_id,
+            common_name=common_name, taxonomy=taxonomy,
+        )
+    finally:
+        with _generating_lock:
+            _generating.discard(assessment_id)
+
+
+def _ensure_art(scientific_name, assessment_id, common_name, taxonomy):
+    """
+    Returns current art status immediately.
+    If art is incomplete and not already being generated, fires a background task.
+    """
+    status = vec.art_status(assessment_id)
+    if not (status["has_image"] and status["has_sprite"]):
+        with _generating_lock:
+            if assessment_id not in _generating:
+                _generating.add(assessment_id)
+                _art_executor.submit(
+                    _art_task, scientific_name, assessment_id, common_name, taxonomy
+                )
+        status["generating"] = True
+    else:
+        status["generating"] = False
+    return status
 
 
 def cache_path(key):
@@ -245,6 +281,14 @@ def sprite_png(assessment_id):
     return resp
 
 
+@app.route("/api/art-status/<int:assessment_id>")
+def api_art_status(assessment_id):
+    status = vec.art_status(assessment_id)
+    with _generating_lock:
+        status["generating"] = assessment_id in _generating
+    return jsonify(status)
+
+
 @app.route("/api/stamps/<int:assessment_id>")
 def stamp_data(assessment_id):
     """
@@ -447,13 +491,8 @@ def species(assessment_id):
     ]
     taxonomy_str = " / ".join(p for p in tax_parts if p)
 
-    # Prepare art assets (runs pipeline on first visit, then cached)
     scientific_name = taxon.get("scientific_name", "")
-    art = vec.prepare_species_art(
-        scientific_name, assessment_id,
-        common_name=common,
-        taxonomy=taxonomy_str,
-    )
+    art = _ensure_art(scientific_name, assessment_id, common, taxonomy_str)
 
     population = extract_population(assessment)
 
@@ -473,6 +512,7 @@ def species(assessment_id):
         back_category=request.args.get("from", "EX"),
         has_art=art["has_sprite"],
         has_source_photo=art["has_image"],
+        generating=art["generating"],
         population=population,
     )
 
@@ -500,11 +540,7 @@ def species_particles(assessment_id):
         ] if p
     )
 
-    art = vec.prepare_species_art(
-        taxon.get("scientific_name", ""), assessment_id,
-        common_name=common,
-        taxonomy=taxonomy_str,
-    )
+    art = _ensure_art(taxon.get("scientific_name", ""), assessment_id, common, taxonomy_str)
 
     return render_template(
         "particles.html",
