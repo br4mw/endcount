@@ -2,10 +2,11 @@
 Image and sprite pipeline.
 
 Source photo  : iNaturalist → Wikipedia fallback → cached PNG
-SVG sprite    : Claude generates from species knowledge (not photo tracing)
-Stamp PNG     : SVG rasterized to white-on-transparent via cairosvg
+SVG sprite    : Claude generates an ink illustration from style examples + species knowledge
+Sprite PNG    : SVG rasterized to colour-on-transparent via cairosvg
 """
 
+import base64
 import io
 import os
 import re
@@ -18,10 +19,11 @@ from PIL import Image
 
 load_dotenv()
 
-CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
-IMG_DIR    = os.path.join(CACHE_DIR, "images")
-SVG_DIR    = os.path.join(CACHE_DIR, "sprites_svg")
-PNG_DIR    = os.path.join(CACHE_DIR, "sprites_png")
+CACHE_DIR    = os.path.join(os.path.dirname(__file__), "cache")
+IMG_DIR      = os.path.join(CACHE_DIR, "images")
+SVG_DIR      = os.path.join(CACHE_DIR, "sprites_svg")
+PNG_DIR      = os.path.join(CACHE_DIR, "sprites_png")
+EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), "spriteexamples")
 
 for d in (IMG_DIR, SVG_DIR, PNG_DIR):
     os.makedirs(d, exist_ok=True)
@@ -79,57 +81,101 @@ def download_source(url, assessment_id):
         return None
 
 
-# ── Claude SVG generation ────────────────────────────────────────────────────
+# ── Style reference images ────────────────────────────────────────────────────
 
-SVG_PROMPT = """Create a minimal SVG silhouette of {common_name} (scientific name: {scientific_name}), a {taxonomy}.
+_EXAMPLE_IMAGES = None  # cached at module level
 
-Requirements:
-- viewBox="0 0 200 200"
-- Single solid black silhouette, fill="#000000", no stroke
-- No background rect, no text, no labels, no decorative elements
-- Natural side-profile or three-quarter pose that best shows the animal's distinctive shape
-- The silhouette should fill most of the viewBox with generous margin
-- Clean, smooth paths — this will be stamped at small sizes (20–60px) so it must read clearly
-- Capture the animal's most recognisable features (body shape, distinctive markings outline, characteristic posture)
-- Return ONLY the raw SVG code starting with <svg and ending with </svg>"""
+def _get_example_images():
+    """Load style reference images from spriteexamples/ as base64 blocks for Claude vision."""
+    global _EXAMPLE_IMAGES
+    if _EXAMPLE_IMAGES is not None:
+        return _EXAMPLE_IMAGES
+
+    _EXAMPLE_IMAGES = []
+    if not os.path.isdir(EXAMPLES_DIR):
+        return _EXAMPLE_IMAGES
+
+    ext_to_mime = {
+        ".webp": "image/webp",
+        ".png":  "image/png",
+        ".jpg":  "image/jpeg",
+        ".jpeg": "image/jpeg",
+    }
+    for fname in sorted(os.listdir(EXAMPLES_DIR)):
+        ext = os.path.splitext(fname)[1].lower()
+        if ext not in ext_to_mime:
+            continue
+        with open(os.path.join(EXAMPLES_DIR, fname), "rb") as f:
+            data = base64.standard_b64encode(f.read()).decode()
+        _EXAMPLE_IMAGES.append({
+            "type": "image",
+            "source": {"type": "base64", "media_type": ext_to_mime[ext], "data": data},
+        })
+
+    return _EXAMPLE_IMAGES
 
 
-def generate_svg_with_claude(scientific_name, common_name, taxonomy, assessment_id):
+# ── Claude SVG generation ─────────────────────────────────────────────────────
+
+SVG_PROMPT = """The images above show the illustration style I want you to match exactly.
+
+Key characteristics of that style:
+- Bold expressive black ink outlines (stroke-based, not solid fills) — confident, slightly loose line quality
+- Interior anatomical detail lines (thinner strokes) showing musculature, scale texture, fin rays, feather groups, bone structure
+- Flat natural colour fills placed behind the ink lines using z-order (the creature's real colours — skin, scales, plumage, fur)
+- A dynamic, living pose (profile or three-quarter) that captures the creature's character and movement
+- No watercolour background, no labels, no decorative elements
+
+Now create an SVG illustration of {common_name} (scientific name: {scientific_name}), a {taxonomy}, in exactly this style.
+
+SVG requirements:
+- viewBox="0 0 200 200", no width/height attributes
+- Colour fill shapes first (behind), then ink outline paths on top
+- Outer body outline: stroke="#111111" stroke-width="2.5" fill="none"
+- Interior detail lines: stroke="#111111" stroke-width="1" fill="none"
+- Fill colours: use the creature's natural colours as flat fills (realistic hues, not black)
+- The animal should fill most of the viewBox with a small margin
+- No background rect, no white fill, no text
+- Return ONLY the raw SVG starting with <svg and ending with </svg>"""
+
+
+def generate_svg_with_claude(scientific_name, common_name, taxonomy, assessment_id, force=False):
     """
-    Ask Claude to draw the species as a vector silhouette.
+    Ask Claude to draw the species as a styled ink illustration SVG.
     Returns path to saved SVG, or None on failure.
+    Set force=True to overwrite an existing file.
     """
     svg_path = os.path.join(SVG_DIR, f"{assessment_id}.svg")
-    if os.path.exists(svg_path):
+    if os.path.exists(svg_path) and not force:
         return svg_path
 
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
         return None
 
-    prompt = SVG_PROMPT.format(
+    prompt_text = SVG_PROMPT.format(
         common_name=common_name or scientific_name,
         scientific_name=scientific_name,
         taxonomy=taxonomy,
     )
+
+    # Build message content: style reference images + text prompt
+    content = _get_example_images() + [{"type": "text", "text": prompt_text}]
 
     try:
         client = anthropic.Anthropic(api_key=api_key)
         msg = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=4096,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": content}],
         )
         raw = msg.content[0].text.strip()
 
-        # Extract SVG block
         match = re.search(r"<svg[\s\S]*?</svg>", raw, re.IGNORECASE)
         if not match:
             return None
 
         svg_content = match.group(0)
-
-        # Ensure xmlns present
         if "xmlns" not in svg_content:
             svg_content = svg_content.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"', 1)
 
@@ -142,15 +188,16 @@ def generate_svg_with_claude(scientific_name, common_name, taxonomy, assessment_
         return None
 
 
-# ── SVG → white-on-transparent PNG ──────────────────────────────────────────
+# ── SVG → colour-on-transparent PNG ──────────────────────────────────────────
 
-def make_sprite_png(assessment_id):
+def make_sprite_png(assessment_id, force=False):
     """
-    Rasterize the Claude SVG to a white-on-transparent PNG for p5.js tinting.
-    White subject = tint() can freely colorise each stamp.
+    Rasterize the SVG to a colour-on-transparent PNG.
+    Near-white background pixels are made transparent so the artwork sits
+    cleanly on any background colour.
     """
     png_path = os.path.join(PNG_DIR, f"{assessment_id}.png")
-    if os.path.exists(png_path):
+    if os.path.exists(png_path) and not force:
         return png_path
 
     svg_path = os.path.join(SVG_DIR, f"{assessment_id}.svg")
@@ -161,30 +208,31 @@ def make_sprite_png(assessment_id):
         with open(svg_path) as f:
             svg_content = f.read()
 
-        # Rasterize at 400×400
         png_bytes = cairosvg.svg2png(
             bytestring=svg_content.encode(),
             output_width=400,
             output_height=400,
         )
 
-        # The SVG is black on transparent.
-        # Invert: make the silhouette white, keep alpha.
         img = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
-        r, g, b, a = img.split()
+        pixels = img.load()
+        w, h = img.size
 
-        # Where the SVG drew black (dark pixels), flip to white.
-        # Use the alpha channel as mask — SVG fills are opaque.
-        white = Image.new("L", img.size, 255)
-        result = Image.merge("RGBA", (white, white, white, a))
-        result.save(png_path, "PNG")
+        # Make near-white pixels transparent (SVG background bleed)
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = pixels[x, y]
+                if r > 238 and g > 238 and b > 238:
+                    pixels[x, y] = (r, g, b, 0)
+
+        img.save(png_path, "PNG")
         return png_path
 
     except Exception:
         return None
 
 
-# ── Orchestrator ─────────────────────────────────────────────────────────────
+# ── Orchestrator ──────────────────────────────────────────────────────────────
 
 def art_status(assessment_id):
     """Fast check of which art files exist — no generation, no API calls."""
@@ -193,38 +241,37 @@ def art_status(assessment_id):
     return {"has_image": has_image, "has_sprite": has_sprite}
 
 
-def prepare_species_art(scientific_name, assessment_id, common_name=None, taxonomy=None):
+def prepare_species_art(scientific_name, assessment_id, common_name=None, taxonomy=None, force=False):
     """
     Full generation pipeline — intended to be called from a background thread.
-    All steps are idempotent: files are only written if they don't already exist.
+    Set force=True to regenerate even if files already exist.
     Returns: { has_image, has_sprite, source_path, svg_path, sprite_png_path }
     """
     result = {
-        "has_image": False,
-        "has_sprite": False,
-        "source_path": None,
-        "svg_path": None,
+        "has_image":      False,
+        "has_sprite":     False,
+        "source_path":    None,
+        "svg_path":       None,
         "sprite_png_path": None,
     }
 
-    # Source photo (for pixel sampling)
     url = fetch_image_url(scientific_name)
     if url:
         source_path = download_source(url, assessment_id)
         if source_path:
-            result["has_image"] = True
+            result["has_image"]   = True
             result["source_path"] = source_path
 
-    # Claude SVG sprite (independent of photo)
     svg_path = generate_svg_with_claude(
         scientific_name,
         common_name or scientific_name,
         taxonomy or "animal",
         assessment_id,
+        force=force,
     )
     if svg_path:
-        result["has_sprite"] = True
-        result["svg_path"] = svg_path
-        result["sprite_png_path"] = make_sprite_png(assessment_id)
+        result["has_sprite"]     = True
+        result["svg_path"]       = svg_path
+        result["sprite_png_path"] = make_sprite_png(assessment_id, force=force)
 
     return result

@@ -140,9 +140,10 @@ const mat = new THREE.ShaderMaterial({
     void main() {
       vec4 t = texture2D(uTex, gl_PointCoord);
       if (t.a < 0.04) discard;
-      // brighten the centre of each particle for a glowing core
+      // Use the illustration's natural colours; add a subtle IUCN-category glow at the core
       float core = smoothstep(0.5, 0.0, length(gl_PointCoord - 0.5));
-      gl_FragColor = vec4(vColor * (t.rgb * 1.4 + core * 0.5), t.a * vAlpha);
+      vec3 color = t.rgb * 1.3 + vColor * core * 0.5;
+      gl_FragColor = vec4(color, t.a * vAlpha);
     }
   `,
   blending:    THREE.AdditiveBlending,
