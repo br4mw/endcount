@@ -289,6 +289,16 @@ def api_art_status(assessment_id):
     return jsonify(status)
 
 
+@app.route("/api/particle-data/<int:assessment_id>")
+def particle_data(assessment_id):
+    path = os.path.join(CACHE_DIR, f"particle_data_{assessment_id}.json")
+    if not os.path.exists(path):
+        abort(404)
+    resp = send_file(path, mimetype="application/json")
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    return resp
+
+
 @app.route("/api/stamps/<int:assessment_id>")
 def stamp_data(assessment_id):
     """
