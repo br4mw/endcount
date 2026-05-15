@@ -333,16 +333,30 @@ main { flex: 1; }
 /* ── Species Page ─────────────────────────────────────────── */
 .species-page { max-width: 1100px; margin: 0 auto; padding: 2.5rem 3rem 5rem; }
 
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
 .back-link {
   font-size: 0.75rem;
   letter-spacing: 0.05em;
   color: var(--muted);
-  display: inline-block;
-  margin-bottom: 2.5rem;
   transition: color 0.12s ease;
 }
 
 .back-link:hover { color: var(--text); }
+
+.particles-top-link {
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  transition: color 0.12s ease;
+}
+
+.particles-top-link:hover { color: var(--text); }
 
 .species-hero { margin-bottom: 2.5rem; }
 
