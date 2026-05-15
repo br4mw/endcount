@@ -1,11 +1,22 @@
 import * as THREE from 'three';
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const AID     = window.ASSESSMENT_ID;
-const CAT     = window.CATEGORY_CODE;
-const ACLASS  = (window.ANIMAL_CLASS || '').toLowerCase();
-const HAS_IMG = window.HAS_IMAGE;
-const N       = 2800;
+const AID        = window.ASSESSMENT_ID;
+const CAT        = window.CATEGORY_CODE;
+const ACLASS     = (window.ANIMAL_CLASS || '').toLowerCase();
+const HAS_IMG    = window.HAS_IMAGE;
+const POPULATION = window.POPULATION;   // integer or null from server
+
+// EX/EW: 10 000 particles (a memorial of what was).
+// Otherwise: clamp wild population to [30, 10 000].
+// null/undefined population falls back to 2 800.
+const N = (CAT === 'EX' || CAT === 'EW')
+  ? 10000
+  : (POPULATION == null ? 2800 : Math.max(30, Math.min(POPULATION, 10000)));
+
+// Scale particle size so coverage stays consistent regardless of count.
+// Reference: 2800 particles at base 16. sqrt(2800/N) compensates for density.
+const BASE_SZ = Math.max(9, Math.min(60, 30 * Math.sqrt(2800 / N)));
 
 function classToMode(cls) {
   if (cls.includes('aves'))                                        return 'flock';
@@ -59,12 +70,14 @@ async function fetchParticleData() {
 }
 
 // ── CPU particle arrays ───────────────────────────────────────────────────────
-const pos  = new Float32Array(N * 3);
-const vel  = new Float32Array(N * 3);
-const home = new Float32Array(N * 3);  // image-sampled home (x,y,z)
-const ph   = new Float32Array(N);
-const rlTh = new Float32Array(N);
-const szM  = new Float32Array(N);
+const pos     = new Float32Array(N * 3);
+const vel     = new Float32Array(N * 3);
+const home    = new Float32Array(N * 3);  // image-sampled home (x,y,z)
+const ph      = new Float32Array(N);
+const rlTh    = new Float32Array(N);
+const szM     = new Float32Array(N);
+const kickVel = new Float32Array(N * 3);  // pre-computed random launch impulse
+const launched = new Uint8Array(N);       // 0 until first alive release
 
 // GPU buffer arrays
 const gpuPos   = new Float32Array(N * 3);
@@ -126,6 +139,7 @@ let stTimer = 0;
 function nextState() {
   state   = STATES[(STATES.indexOf(state) + 1) % STATES.length];
   stTimer = 0;
+  if (state === 'scatter') launched.fill(0);
 }
 
 // ── Photo backdrop ────────────────────────────────────────────────────────────
@@ -160,12 +174,20 @@ function init(particles) {
     rlTh[i] = Math.random();
     szM[i]  = 0.55 + Math.random() * 1.1;
 
+    // Random launch impulse applied once when each particle first releases
+    const kSpeed = 50 + Math.random() * 130;
+    const kA     = Math.random() * Math.PI * 2;
+    const kB     = (Math.random() - 0.5) * Math.PI;
+    kickVel[i*3]   = kSpeed * Math.cos(kB) * Math.cos(kA);
+    kickVel[i*3+1] = kSpeed * Math.cos(kB) * Math.sin(kA);
+    kickVel[i*3+2] = kSpeed * Math.sin(kB) * 0.4;
+
     // Colour from illustration pixel
     gpuCol[i*3]   = p.r / 255;
     gpuCol[i*3+1] = p.g / 255;
     gpuCol[i*3+2] = p.b / 255;
 
-    gpuSz[i]    = 9 * szM[i];
+    gpuSz[i]    = BASE_SZ * szM[i];
     gpuAlpha[i] = 0;
   }
 
@@ -370,6 +392,12 @@ function animate(ms) {
 
     } else { // alive
       if (aliveRelease > rlTh[i]) {
+        if (!launched[i]) {
+          vel[ix] = kickVel[i*3];
+          vel[iy] = kickVel[i*3+1];
+          vel[iz] = kickVel[i*3+2];
+          launched[i] = 1;
+        }
         moveFn(i, dt, t);
         const targetA = 0.55 + Math.sin(t * 3.5 + ph[i]) * 0.22;
         gpuAlpha[i] += (targetA - gpuAlpha[i]) * Math.min(dt * 1.2, 0.07);
@@ -397,7 +425,7 @@ function animate(ms) {
     gpuPos[iy] = pos[iy];
     gpuPos[iz] = pos[iz];
 
-    gpuSz[i] = szM[i] * (8.5 + Math.sin(t * 2.4 + ph[i]) * 2.2);
+    gpuSz[i] = szM[i] * (BASE_SZ + Math.sin(t * 2.4 + ph[i]) * BASE_SZ * 0.15);
   }
 
   geo.attributes.position.needsUpdate = true;

@@ -289,6 +289,115 @@ def api_art_status(assessment_id):
     return jsonify(status)
 
 
+@app.route("/api/search")
+def api_search():
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify([])
+    return jsonify(_search(q, limit=25))
+
+
+# ── Search index ──────────────────────────────────────────────────────────────
+_search_index = None
+
+def _build_search_index():
+    """Build once from all cached list files + names store + assessment caches."""
+    global _search_index
+    if _search_index is not None:
+        return
+
+    store = _load_names_store()
+
+    # Taxonomy from cached assessments
+    tax_map   = {}   # aid → "Class / Order / Family"
+    class_map = {}   # aid → class_name
+    for fname in os.listdir(CACHE_DIR):
+        if not fname.startswith("assessment_"):
+            continue
+        try:
+            with open(os.path.join(CACHE_DIR, fname)) as f:
+                a = json.load(f)
+            t   = a.get("taxon", {})
+            aid = a.get("assessment_id")
+            if not aid:
+                continue
+            parts = [t.get("class_name","").capitalize(),
+                     t.get("order_name","").capitalize(),
+                     t.get("family_name","").capitalize()]
+            tax_map[aid]   = " ".join(p for p in parts if p).lower()
+            class_map[aid] = t.get("class_name","").lower()
+        except Exception:
+            pass
+
+    entries = {}   # aid → dict
+    for fname in sorted(os.listdir(CACHE_DIR)):
+        if not (fname.startswith("list_") and fname.endswith(".json")):
+            continue
+        try:
+            with open(os.path.join(CACHE_DIR, fname)) as f:
+                data = json.load(f)
+        except Exception:
+            continue
+        for item in data.get("assessments", []):
+            aid  = item["assessment_id"]
+            sci  = item.get("taxon_scientific_name", "")
+            code = (item.get("red_list_category_code")
+                    or item.get("code")
+                    or (item.get("red_list_category") or {}).get("code", ""))
+            common = store.get(str(aid))
+            entries[aid] = {
+                "assessment_id":   aid,
+                "scientific_name": sci,
+                "common_name":     common,
+                "category_code":   code,
+                "category_label":  CATEGORY_LABELS.get(code, code),
+                "_search_blob":    " ".join(filter(None, [
+                    (common or "").lower(),
+                    sci.lower(),
+                    tax_map.get(aid, ""),
+                    CATEGORY_LABELS.get(code, "").lower(),
+                ])),
+            }
+
+    _search_index = list(entries.values())
+
+
+def _search(q, limit=25):
+    _build_search_index()
+
+    tokens = q.lower().split()
+    if not tokens:
+        return []
+
+    scored = []
+    for entry in _search_index:
+        blob   = entry["_search_blob"]
+        common = (entry["common_name"] or "").lower()
+        sci    = entry["scientific_name"].lower()
+
+        # All tokens must appear somewhere in the blob
+        if not all(tok in blob for tok in tokens):
+            continue
+
+        # Relevance score
+        score = 0
+        qt = q.lower()
+        if common == qt:                        score += 100
+        elif common.startswith(qt):             score += 80
+        elif qt in common:                      score += 60
+        if sci == qt:                           score += 50
+        elif sci.startswith(qt):               score += 35
+        elif qt in sci:                         score += 20
+        # Boost species with art ready
+        if os.path.exists(os.path.join(vec.PNG_DIR, f"{entry['assessment_id']}.png")):
+            score += 5
+
+        scored.append((score, entry))
+
+    scored.sort(key=lambda x: (-x[0], x[1]["common_name"] or x[1]["scientific_name"]))
+    return [e for _, e in scored[:limit]]
+
+
 @app.route("/api/particle-data/<int:assessment_id>")
 def particle_data(assessment_id):
     path = os.path.join(CACHE_DIR, f"particle_data_{assessment_id}.json")
@@ -551,6 +660,7 @@ def species_particles(assessment_id):
     )
 
     art = _ensure_art(taxon.get("scientific_name", ""), assessment_id, common, taxonomy_str)
+    population = extract_population(assessment)
 
     return render_template(
         "particles.html",
@@ -561,6 +671,7 @@ def species_particles(assessment_id):
         category_label=category_label,
         animal_class=animal_class,
         has_image=art["has_image"],
+        population=population,
     )
 
 

@@ -14,7 +14,78 @@
   <header class="site-header">
     <a href="/" class="site-logo">Endcount</a>
     <p class="site-tagline">A record of species lost and losing</p>
+    <div class="search-wrap">
+      <input id="search-input" class="search-input" type="search"
+             placeholder="Search species…" autocomplete="off" spellcheck="false">
+      <ul id="search-results" class="search-results" hidden></ul>
+    </div>
   </header>
+
+  <script>
+  (function () {
+    const input   = document.getElementById('search-input');
+    const results = document.getElementById('search-results');
+    const cats = {
+      EX:'#3d2b1f',EW:'#5c3d2e',CR:'#8b3a2a',
+      EN:'#b85c38',VU:'#c4874a',NT:'#7a8f5e',LC:'#4a7a6e'
+    };
+    let timer, active = -1;
+
+    function hide() { results.hidden = true; active = -1; }
+    function show() { results.hidden = false; }
+
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      const q = input.value.trim();
+      if (q.length < 2) { hide(); return; }
+      timer = setTimeout(() => fetch(`/api/search?q=${encodeURIComponent(q)}`)
+        .then(r => r.json()).then(render), 200);
+    });
+
+    function render(items) {
+      results.innerHTML = '';
+      active = -1;
+      if (!items.length) { hide(); return; }
+      items.forEach((item, i) => {
+        const li = document.createElement('li');
+        li.className = 'search-result';
+        li.dataset.href = `/species/${item.assessment_id}`;
+        const dot = `<span class="search-dot" style="background:${cats[item.category_code]||'#999'}"></span>`;
+        const name = item.common_name
+          ? `<span class="search-common">${item.common_name}</span><span class="search-sci">${item.scientific_name}</span>`
+          : `<span class="search-common">${item.scientific_name}</span>`;
+        const badge = `<span class="search-badge" style="color:${cats[item.category_code]||'#999'}">${item.category_code}</span>`;
+        li.innerHTML = dot + name + badge;
+        li.addEventListener('mousedown', e => { e.preventDefault(); window.location = li.dataset.href; });
+        results.appendChild(li);
+      });
+      show();
+    }
+
+    input.addEventListener('keydown', e => {
+      const items = results.querySelectorAll('.search-result');
+      if (!items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1, items); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1, items); }
+      else if (e.key === 'Enter' && active >= 0) { window.location = items[active].dataset.href; }
+      else if (e.key === 'Escape') { hide(); input.blur(); }
+    });
+
+    function setActive(idx, items) {
+      if (active >= 0) items[active].classList.remove('is-active');
+      active = Math.max(0, Math.min(idx, items.length - 1));
+      items[active].classList.add('is-active');
+      items[active].scrollIntoView({ block: 'nearest' });
+    }
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.search-wrap')) hide();
+    });
+    input.addEventListener('focus', () => {
+      if (results.children.length) show();
+    });
+  })();
+  </script>
   <main>
     {% block content %}{% endblock %}
   </main>
