@@ -276,7 +276,7 @@ main { flex: 1; }
   margin-top: 0.2rem;
 }
 
-.card-year {
+.card-class {
   margin-top: auto;
   padding-top: 1rem;
   font-size: 0.7rem;
@@ -284,7 +284,7 @@ main { flex: 1; }
   letter-spacing: 0.05em;
 }
 
-.species-card:hover .card-year { color: var(--muted); }
+.species-card:hover .card-class { color: var(--muted); }
 
 /* ── Category colours ─────────────────────────────────────── */
 .cat-EX  { color: var(--cat-EX); }

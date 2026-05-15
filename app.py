@@ -27,6 +27,19 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
+VERT_PATH = os.path.join(CACHE_DIR, "_vertebrates.json")
+
+def _load_vertebrates():
+    by_cat = {}
+    if not os.path.exists(VERT_PATH):
+        return by_cat
+    with open(VERT_PATH) as f:
+        for e in json.load(f):
+            by_cat.setdefault(e.get("category_code", ""), []).append(e)
+    return by_cat
+
+_vertebrate_by_cat = _load_vertebrates()
+
 CATEGORY_LABELS = {
     "EX": "Extinct",
     "EW": "Extinct in the Wild",
@@ -535,24 +548,26 @@ def enrich_common_names(assessments):
 @app.route("/")
 def index():
     category = request.args.get("category", "EX")
-    if category not in CATEGORY_LABELS:
-        category = "EX"
+    available_cats = [c for c in CATEGORY_ORDER if c in _vertebrate_by_cat]
+    if category not in _vertebrate_by_cat:
+        category = available_cats[0] if available_cats else "EX"
     page = max(1, int(request.args.get("page", 1)))
 
-    data = fetch_species_list(category, page)
-    assessments = data.get("assessments", [])
-    has_next = len(assessments) == 100
-
-    enrich_common_names(assessments)
+    PAGE_SIZE = 100
+    all_for_cat = _vertebrate_by_cat.get(category, [])
+    start = (page - 1) * PAGE_SIZE
+    assessments = all_for_cat[start:start + PAGE_SIZE]
+    has_next = (start + PAGE_SIZE) < len(all_for_cat)
 
     return render_template(
         "index.html",
         assessments=assessments,
         category=category,
         category_label=CATEGORY_LABELS[category],
-        categories=[(c, CATEGORY_LABELS[c]) for c in CATEGORY_ORDER],
+        categories=[(c, CATEGORY_LABELS[c]) for c in available_cats],
         page=page,
         has_next=has_next,
+        total=len(all_for_cat),
     )
 
 

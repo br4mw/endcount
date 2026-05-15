@@ -5,6 +5,7 @@
 {% block content %}
 <div class="index-header">
   <h1 class="index-title">{{ category_label }}</h1>
+  <p class="index-count">{{ "{:,}".format(total) }} vertebrate species</p>
 </div>
 
 <nav class="category-nav">
@@ -19,12 +20,12 @@
   {% for item in assessments %}
   <a href="/species/{{ item.assessment_id }}?from={{ category }}" class="species-card">
     <div class="species-card-inner">
-      <span class="card-category cat-{{ item.red_list_category_code }}">{{ item.red_list_category_code }}</span>
-      <h2 class="card-title">{{ item.common_name or item.taxon_scientific_name }}</h2>
+      <span class="card-category cat-{{ item.category_code }}">{{ item.category_code }}</span>
+      <h2 class="card-title">{{ item.common_name or item.scientific_name }}</h2>
       {% if item.common_name %}
-      <p class="card-scientific">{{ item.taxon_scientific_name }}</p>
+      <p class="card-scientific">{{ item.scientific_name }}</p>
       {% endif %}
-      <p class="card-year">{{ item.year_published }}</p>
+      <p class="card-class">{{ item.class_name | title }}</p>
     </div>
   </a>
   {% else %}
