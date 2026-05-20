@@ -10,7 +10,7 @@
 
 <nav class="category-nav">
   {% for code, label in categories %}
-  <a href="/?category={{ code }}" class="category-pill {% if code == category %}active{% endif %}">
+  <a href="/?category={{ code }}" class="category-pill {% if code in selected_cats %}active{% endif %}">
     <span class="category-dot cat-{{ code }}"></span>{{ label }}
   </a>
   {% endfor %}
@@ -36,11 +36,11 @@
 {% if page > 1 or has_next %}
 <nav class="pagination">
   {% if page > 1 %}
-  <a href="/?category={{ category }}&page={{ page - 1 }}" class="page-btn">&#8592; Previous</a>
+  <a href="/?{{ filter_qs }}&page={{ page - 1 }}" class="page-btn">&#8592; Previous</a>
   {% endif %}
   <span class="page-info">Page {{ page }}</span>
   {% if has_next %}
-  <a href="/?category={{ category }}&page={{ page + 1 }}" class="page-btn">Next &#8594;</a>
+  <a href="/?{{ filter_qs }}&page={{ page + 1 }}" class="page-btn">Next &#8594;</a>
   {% endif %}
 </nav>
 {% endif %}

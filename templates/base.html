@@ -15,9 +15,38 @@
     <a href="/" class="site-logo">Endcount</a>
     <p class="site-tagline">A record of species lost and losing</p>
     <div class="search-wrap">
-      <input id="search-input" class="search-input" type="search"
-             placeholder="Search species…" autocomplete="off" spellcheck="false">
+      <div class="search-row">
+        <input id="search-input" class="search-input" type="search"
+               placeholder="Search species…" autocomplete="off" spellcheck="false">
+        <button id="filter-btn" class="filter-btn" type="button">Filter</button>
+      </div>
       <ul id="search-results" class="search-results" hidden></ul>
+      <div id="filter-panel" class="filter-panel" hidden>
+        <div class="fp-section">
+          <p class="fp-label">Category</p>
+          <div class="fp-pills" id="fp-cats">
+            {% for code, label in filter_cats %}
+            <button class="fp-pill" data-value="{{ code }}" type="button">{{ code }} · {{ label }}</button>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="fp-section">
+          <p class="fp-label">Class</p>
+          <div class="fp-pills" id="fp-cls">
+            {% for code, label in filter_classes %}
+            <button class="fp-pill" data-value="{{ code }}" type="button">{{ label }}</button>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="fp-section">
+          <p class="fp-label">Keyword</p>
+          <input id="fp-kw" class="fp-kw" type="text" placeholder="e.g. jaguar, Panthera…">
+        </div>
+        <div class="fp-actions">
+          <button id="fp-apply" class="fp-apply" type="button">Apply</button>
+          <button id="fp-clear" class="fp-clear" type="button">Clear</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -83,6 +112,61 @@
     });
     input.addEventListener('focus', () => {
       if (results.children.length) show();
+    });
+  })();
+
+  // ── Filter panel ──────────────────────────────────────────────────────────
+  (function () {
+    const btn   = document.getElementById('filter-btn');
+    const panel = document.getElementById('filter-panel');
+    const kw    = document.getElementById('fp-kw');
+
+    // Pre-populate from URL
+    const params = new URLSearchParams(window.location.search);
+    const activeCats = new Set((params.get('categories') || params.get('category') || '').split(',').filter(Boolean));
+    const activeCls  = new Set((params.get('classes') || '').split(',').filter(Boolean));
+    if (kw) kw.value = params.get('q') || '';
+
+    document.querySelectorAll('#fp-cats .fp-pill').forEach(p => {
+      if (activeCats.has(p.dataset.value)) p.classList.add('active');
+      p.addEventListener('click', () => p.classList.toggle('active'));
+    });
+    document.querySelectorAll('#fp-cls .fp-pill').forEach(p => {
+      if (activeCls.has(p.dataset.value)) p.classList.add('active');
+      p.addEventListener('click', () => p.classList.toggle('active'));
+    });
+
+    // Show active state on button when filters applied
+    if (activeCats.size > 1 || activeCls.size || params.get('q')) {
+      btn.classList.add('filter-btn--active');
+    }
+
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) kw.focus();
+    });
+
+    document.getElementById('fp-apply').addEventListener('click', () => {
+      const cats = [...document.querySelectorAll('#fp-cats .fp-pill.active')].map(p => p.dataset.value);
+      const cls  = [...document.querySelectorAll('#fp-cls .fp-pill.active')].map(p => p.dataset.value);
+      const q    = kw.value.trim();
+      const qs   = new URLSearchParams();
+      if (cats.length) qs.set('categories', cats.join(','));
+      if (cls.length)  qs.set('classes', cls.join(','));
+      if (q)           qs.set('q', q);
+      window.location = '/?' + qs.toString();
+    });
+
+    document.getElementById('fp-clear').addEventListener('click', () => {
+      window.location = '/';
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.search-wrap')) panel.hidden = true;
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') panel.hidden = true;
     });
   })();
   </script>

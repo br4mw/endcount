@@ -56,6 +56,119 @@ a { color: inherit; text-decoration: none; }
   margin-left: auto;
 }
 
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-btn {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s;
+}
+.filter-btn:hover,
+.filter-btn--active { border-color: var(--accent); color: var(--text); }
+
+/* ── Filter panel ─────────────────────────────────────────── */
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 340px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  padding: 1.25rem;
+  z-index: 1000;
+}
+
+.fp-section { margin-bottom: 1rem; }
+
+.fp-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.45rem;
+}
+
+.fp-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+
+.fp-pill {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.fp-pill:hover { border-color: var(--accent); color: var(--text); }
+.fp-pill.active { background: var(--text); border-color: var(--text); color: var(--bg); }
+
+.fp-kw {
+  width: 100%;
+  padding: 0.38rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 300;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.fp-kw:focus { border-color: var(--accent); }
+.fp-kw::placeholder { color: var(--muted); }
+
+.fp-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.fp-apply {
+  flex: 1;
+  padding: 0.42rem;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.fp-apply:hover { opacity: 0.75; }
+
+.fp-clear {
+  padding: 0.42rem 1rem;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.fp-clear:hover { color: var(--text); border-color: var(--text); }
+
 .search-input {
   width: 220px;
   padding: 0.4rem 0.85rem;

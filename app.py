@@ -5,6 +5,7 @@ import threading
 import anthropic
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import urlencode
 from flask import Flask, render_template, abort, request, send_file, jsonify
 from dotenv import load_dotenv
 
@@ -13,6 +14,13 @@ load_dotenv()
 import vectorize as vec
 
 app = Flask(__name__)
+
+@app.context_processor
+def _inject_filter_options():
+    return {
+        "filter_cats":    [(c, CATEGORY_LABELS[c]) for c in CATEGORY_ORDER if c in _vertebrate_by_cat],
+        "filter_classes": [(c, CLASS_DISPLAY.get(c, c.title())) for c in _available_classes],
+    }
 
 IUCN_TOKEN = "wttvRUqcni78ic1SfdVCFzKxcgSXHsbBG1gr"
 IUCN_BASE = "https://api.iucnredlist.org/api/v4"
@@ -39,6 +47,26 @@ def _load_vertebrates():
     return by_cat
 
 _vertebrate_by_cat = _load_vertebrates()
+
+CLASS_DISPLAY = {
+    "MAMMALIA":       "Mammals",
+    "AVES":           "Birds",
+    "REPTILIA":       "Reptiles",
+    "TESTUDINES":     "Turtles",
+    "SQUAMATA":       "Lizards & Snakes",
+    "CROCODYLIA":     "Crocodilians",
+    "RHYNCHOCEPHALIA":"Tuatara",
+    "AMPHIBIA":       "Amphibians",
+    "ACTINOPTERYGII": "Bony Fish",
+    "CHONDRICHTHYES": "Sharks & Rays",
+}
+
+_available_classes = sorted(set(
+    e["class_name"]
+    for cat_entries in _vertebrate_by_cat.values()
+    for e in cat_entries
+    if e.get("class_name")
+))
 
 CATEGORY_LABELS = {
     "EX": "Extinct",
@@ -547,27 +575,64 @@ def enrich_common_names(assessments):
 
 @app.route("/")
 def index():
-    category = request.args.get("category", "EX")
     available_cats = [c for c in CATEGORY_ORDER if c in _vertebrate_by_cat]
-    if category not in _vertebrate_by_cat:
-        category = available_cats[0] if available_cats else "EX"
-    page = max(1, int(request.args.get("page", 1)))
 
-    PAGE_SIZE = 100
-    all_for_cat = _vertebrate_by_cat.get(category, [])
-    start = (page - 1) * PAGE_SIZE
-    assessments = all_for_cat[start:start + PAGE_SIZE]
-    has_next = (start + PAGE_SIZE) < len(all_for_cat)
+    cats_param    = request.args.get("categories", "").strip()
+    cat_param     = request.args.get("category", "").strip()
+    classes_param = request.args.get("classes", "").strip()
+    q             = request.args.get("q", "").strip()
+    page          = max(1, int(request.args.get("page", 1)))
+
+    if cats_param:
+        selected_cats = [c for c in cats_param.split(",") if c in _vertebrate_by_cat]
+    elif cat_param in _vertebrate_by_cat:
+        selected_cats = [cat_param]
+    else:
+        selected_cats = [available_cats[0]] if available_cats else ["EX"]
+
+    selected_classes = [c for c in classes_param.split(",") if c] if classes_param else []
+
+    all_entries = []
+    for cat in selected_cats:
+        all_entries.extend(_vertebrate_by_cat.get(cat, []))
+
+    if selected_classes:
+        cls_set = set(c.upper() for c in selected_classes)
+        all_entries = [e for e in all_entries if e.get("class_name", "") in cls_set]
+
+    if q:
+        ql = q.lower()
+        all_entries = [e for e in all_entries
+                       if ql in (e.get("common_name") or "").lower()
+                       or ql in e.get("scientific_name", "").lower()
+                       or ql in e.get("order_name", "").lower()
+                       or ql in e.get("family_name", "").lower()]
+
+    PAGE_SIZE   = 100
+    start       = (page - 1) * PAGE_SIZE
+    assessments = all_entries[start:start + PAGE_SIZE]
+    has_next    = (start + PAGE_SIZE) < len(all_entries)
+
+    single_cat = selected_cats[0] if len(selected_cats) == 1 else ""
+    filter_qs  = urlencode({k: v for k, v in {
+        "categories": cats_param or ",".join(selected_cats),
+        "classes":    classes_param,
+        "q":          q,
+    }.items() if v})
 
     return render_template(
         "index.html",
         assessments=assessments,
-        category=category,
-        category_label=CATEGORY_LABELS[category],
+        category=single_cat,
+        selected_cats=selected_cats,
+        selected_classes=selected_classes,
+        q=q,
+        category_label=CATEGORY_LABELS.get(single_cat, "Filtered") if single_cat else "Filtered",
         categories=[(c, CATEGORY_LABELS[c]) for c in available_cats],
         page=page,
         has_next=has_next,
-        total=len(all_for_cat),
+        total=len(all_entries),
+        filter_qs=filter_qs,
     )
 
 
