@@ -2,12 +2,25 @@
 
 {% block title %}{{ taxon.scientific_name }} · Endcount{% endblock %}
 
+{% block head %}
+{% if has_particle_data %}
+<script>
+  window.ASSESSMENT_ID = {{ assessment.assessment_id }};
+  window.CATEGORY_CODE = {{ category_code | tojson }};
+  window.ANIMAL_CLASS  = {{ animal_class | tojson }};
+  window.POPULATION    = {{ population | tojson }};
+</script>
+<script type="importmap">
+{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="species-page">
 
   <div class="top-nav">
     <a href="/?categories={{ back_category }}&classes=MAMMALIA" class="back-link">&#8592; Back</a>
-    <a href="/species/{{ assessment.assessment_id }}/particles" class="particles-top-link">View particle system &#8594;</a>
   </div>
 
   <div class="species-hero">
@@ -22,18 +35,22 @@
   </div>
 
   {% if has_source_photo %}
-  <div class="hero-image-wrap cat-{{ category_code }}-frame">
-    <img src="/api/source/{{ assessment.assessment_id }}"
+  <div class="hero-image-wrap cat-{{ category_code }}-frame" id="art-container">
+    <img id="species-art-img"
+         src="/api/source/{{ assessment.assessment_id }}"
          alt="{{ common or taxon.scientific_name }}"
          class="hero-img">
+    {% if has_particle_data %}
+    <div id="art-canvas-wrap" class="art-canvas-wrap"></div>
+    {% endif %}
     <div class="hero-image-meta">
       {% if population is not none %}
         {% if population == 0 %}
         <span class="art-population-label art-zero">0 individuals remain in the wild</span>
         {% else %}
         <span class="art-population-label">
-          Each particle in the <a href="/species/{{ assessment.assessment_id }}/particles" class="inline-link">particle view</a>
-          represents one of the {{ "{:,}".format(population) }} individuals remaining
+          {% if has_particle_data %}Each particle represents{% else %}Population estimated at{% endif %}
+          one of the {{ "{:,}".format(population) }} individuals remaining
           {% if not supp.population_size %}<span class="art-estimated"> (estimated)</span>{% endif %}
         </span>
         {% endif %}
@@ -129,14 +146,15 @@
   fetch('/api/art-status/{{ assessment.assessment_id }}')
     .then(r => r.json())
     .then(s => {
-      if (s.has_image) {
-        window.location.reload();
-      } else if (s.generating) {
-        setTimeout(poll, 4000);
-      }
+      if (s.has_image) window.location.reload();
+      else if (s.generating) setTimeout(poll, 4000);
     })
     .catch(() => setTimeout(poll, 6000));
 })();
 </script>
+{% endif %}
+
+{% if has_particle_data %}
+<script type="module" src="{{ url_for('static', filename='particles.js') }}"></script>
 {% endif %}
 {% endblock %}

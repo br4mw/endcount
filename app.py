@@ -756,46 +756,9 @@ def species(assessment_id):
         supp=supp,
         back_category=request.args.get("from", "EX"),
         has_source_photo=art["has_image"],
+        has_particle_data=art["has_particle_data"],
         generating=art["generating"],
-        population=population,
-    )
-
-
-@app.route("/species/<int:assessment_id>/particles")
-def species_particles(assessment_id):
-    try:
-        assessment = fetch_assessment(assessment_id)
-    except Exception:
-        abort(404)
-
-    taxon = assessment.get("taxon", {})
-    common_names = [n["name"] for n in taxon.get("common_names", []) if n.get("language") == "eng"]
-    common = common_names[0] if common_names else None
-
-    category_code  = assessment.get("red_list_category", {}).get("code", "")
-    category_label = CATEGORY_LABELS.get(category_code, category_code)
-    animal_class   = taxon.get("class_name", "")
-
-    taxonomy_str = " / ".join(
-        p for p in [
-            taxon.get("class_name", "").capitalize(),
-            taxon.get("order_name", "").capitalize(),
-            taxon.get("family_name", "").capitalize(),
-        ] if p
-    )
-
-    art = _ensure_art(taxon.get("scientific_name", ""), assessment_id, common, taxonomy_str)
-    population = extract_population(assessment)
-
-    return render_template(
-        "particles.html",
-        assessment_id=assessment_id,
-        name=common or taxon.get("scientific_name", ""),
-        scientific_name=taxon.get("scientific_name", ""),
-        category_code=category_code,
-        category_label=category_label,
-        animal_class=animal_class,
-        has_image=art["has_image"],
+        animal_class=taxon.get("class_name", ""),
         population=population,
     )
 
