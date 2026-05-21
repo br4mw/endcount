@@ -11,7 +11,7 @@ const N = (CAT === 'EX' || CAT === 'EW')
   : (POPULATION == null ? 2800 : Math.max(30, Math.min(POPULATION, 10000)));
 
 // Particle size tuned for the 520px-tall embedded container
-const BASE_SZ = Math.max(4, Math.min(14, 14 * Math.sqrt(2800 / N)));
+const BASE_SZ = Math.max(8, Math.min(28, 28 * Math.sqrt(2800 / N)));
 
 function classToMode(cls) {
   if (cls.includes('aves'))                                           return 'flock';
@@ -159,8 +159,8 @@ function init(particles) {
     // in the wider container, and the camera frustum covers the full element
     // width — the 9% reduction aligns the particle cluster with the actual
     // displayed image region.
-    home[i*3]   = p.x * 272 + (Math.random() - 0.5) * HOME_JITTER;
-    home[i*3+1] = p.y * 272 + (Math.random() - 0.5) * HOME_JITTER;
+    home[i*3]   =  p.x * 272 + (Math.random() - 0.5) * HOME_JITTER;
+    home[i*3+1] = -p.y * 272 + (Math.random() - 0.5) * HOME_JITTER;
     home[i*3+2] = p.z;
 
     // Start at home — image is shown first, particles hidden
