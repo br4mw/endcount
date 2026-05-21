@@ -128,14 +128,15 @@ document.dispatchEvent(new CustomEvent('particlesReady'));
 // show    (4s) : image=1.0, particles hidden at home
 // fadeout (2s) : image 1→0, particles fade in at home
 // scatter (10s): particles launch from animal shape and animate freely
+// [extinct] gone (2s) : total darkness — particles drift invisibly
 // gather  (5s) : particles return to home positions
 // fadein  (5s) : particles fade out, image 0→1
-// linger  (4s) : [extinct only] image=1.0, particles dissolve to nothing
+// [extinct] linger (4s) : image=1.0, particles dissolve to nothing
 const IS_EXTINCT = POPULATION === 0;
 const STATES = IS_EXTINCT
-  ? ['show', 'fadeout', 'scatter', 'gather', 'fadein', 'linger']
+  ? ['show', 'fadeout', 'scatter', 'gone', 'gather', 'fadein', 'linger']
   : ['show', 'fadeout', 'scatter', 'gather', 'fadein'];
-const DUR    = { show: 4, fadeout: 2, scatter: 10, gather: 5, fadein: 5, linger: 4 };
+const DUR    = { show: 4, fadeout: 2, scatter: 10, gather: 5, fadein: 5, linger: 4, gone: 2 };
 
 let state   = 'show';
 let stTimer = 0;
@@ -322,6 +323,7 @@ function animate(ms) {
   else if (state === 'gather')  setImgOpacity(0);
   else if (state === 'fadein')  setImgOpacity(prog);
   else if (state === 'linger')  setImgOpacity(1);
+  else if (state === 'gone')    setImgOpacity(0);
 
   const scatterRelease = state === 'scatter' ? Math.min(1, stTimer / 3.5) : 0;
 
@@ -401,10 +403,17 @@ function animate(ms) {
       pos[ix] += vel[ix] * dt; pos[iy] += vel[iy] * dt; pos[iz] = home[iz];
       const tgt = (1 - prog) * 0.30;
       gpuAlpha[i] += (tgt - gpuAlpha[i]) * Math.min(dt * 1.5, 0.08);
+
+    } else if (state === 'gone') {
+      // Total darkness — particles drift invisibly so gather can pull them
+      // back from spread-out positions rather than snapping from home.
+      moveFn(i, dt, t);
+      pos[ix] += vel[ix] * dt; pos[iy] += vel[iy] * dt; pos[iz] += vel[iz] * dt;
+      gpuAlpha[i] = 0;
     }
 
-    // Wrap bounds during scatter
-    if (state === 'scatter') {
+    // Wrap bounds during scatter and the invisible gone drift
+    if (state === 'scatter' || state === 'gone') {
       if      (pos[ix] >  420) pos[ix] = -420;
       else if (pos[ix] < -420) pos[ix] =  420;
       if      (pos[iy] >  360) pos[iy] = -360;
