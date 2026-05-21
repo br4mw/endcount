@@ -22,7 +22,7 @@
   </div>
 
   {% if has_source_photo %}
-  <div class="hero-image-wrap">
+  <div class="hero-image-wrap cat-{{ category_code }}-frame">
     <img src="/api/source/{{ assessment.assessment_id }}"
          alt="{{ common or taxon.scientific_name }}"
          class="hero-img">
