@@ -154,9 +154,13 @@ function init(particles) {
   for (let i = 0; i < N; i++) {
     const p = particles[i % particles.length];
 
-    // Jitter home positions to prevent the regular grid from becoming visible
-    home[i*3]   = p.x * 300 + (Math.random() - 0.5) * HOME_JITTER;
-    home[i*3+1] = p.y * 300 + (Math.random() - 0.5) * HOME_JITTER;
+    // Jitter home positions to prevent the regular grid from becoming visible.
+    // Scale is 272 rather than 300: object-fit:contain centres a square image
+    // in the wider container, and the camera frustum covers the full element
+    // width — the 9% reduction aligns the particle cluster with the actual
+    // displayed image region.
+    home[i*3]   = p.x * 272 + (Math.random() - 0.5) * HOME_JITTER;
+    home[i*3+1] = p.y * 272 + (Math.random() - 0.5) * HOME_JITTER;
     home[i*3+2] = p.z;
 
     // Start at home — image is shown first, particles hidden
