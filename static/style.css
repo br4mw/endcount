@@ -639,15 +639,16 @@ main { flex: 1; }
 
 .art-canvas-wrap {
   position: absolute;
-  inset: 0;
-  bottom: 42px; /* leave meta strip uncovered */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 520px; /* match hero-img height exactly */
   pointer-events: none;
+  overflow: hidden;
 }
 
 .art-canvas-wrap canvas {
   display: block;
-  width: 100% !important;
-  height: 100% !important;
 }
 
 .hero-image-meta {
@@ -798,7 +799,7 @@ main { flex: 1; }
   .species-page { padding: 1.5rem 1.5rem 3rem; }
   .species-body { grid-template-columns: 1fr; gap: 2rem; }
   .hero-img { height: 260px; }
-  .art-canvas-wrap { bottom: 42px; }
+  .art-canvas-wrap { height: 260px; }
   .species-aside { display: grid; grid-template-columns: 1fr 1fr; gap: 0 2rem; }
 }
 

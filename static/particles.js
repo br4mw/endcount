@@ -37,16 +37,20 @@ renderer.setClearColor(0x000000, 0);  // fully transparent background
 canvasWrap.appendChild(renderer.domElement);
 
 const scene  = new THREE.Scene();
-// Camera Z chosen so visible height = 600 world units, matching particle range ±300
-const CAM_Z  = 300 / Math.tan(27.5 * Math.PI / 180);  // ≈ 577
 const camera = new THREE.PerspectiveCamera(55, 2, 1, 2000);
-camera.position.z = CAM_Z;
 
 function resize() {
-  const w = container.clientWidth;
-  const h = container.clientHeight || 520;
-  renderer.setSize(w, h);
-  camera.aspect = w / h;
+  // Use the image element dimensions — the canvas must align exactly with
+  // the displayed image, not the full container (which includes the meta strip).
+  const imgH = artImg ? artImg.clientHeight : 520;
+  const imgW = artImg ? artImg.clientWidth  : canvasWrap.clientWidth || container.clientWidth;
+
+  renderer.setSize(imgW, imgH);
+  camera.aspect = imgW / imgH;
+
+  // Camera Z so that ±300 world units = exactly imgH pixels tall
+  // (particle home positions are sampled from the image in [-1,1] → ×300)
+  camera.position.z = 300 / Math.tan(27.5 * Math.PI / 180);  // ≈ 577
   camera.updateProjectionMatrix();
 }
 resize();
