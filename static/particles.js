@@ -143,12 +143,16 @@ async function fetchParticleData() {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+// Jitter breaks the regular sampling grid so gathered particles look organic
+const HOME_JITTER = 5.5;
+
 function init(particles) {
   for (let i = 0; i < N; i++) {
     const p = particles[i % particles.length];
 
-    home[i*3]   = p.x * 300;
-    home[i*3+1] = p.y * 300;
+    // Jitter home positions to prevent the regular grid from becoming visible
+    home[i*3]   = p.x * 300 + (Math.random() - 0.5) * HOME_JITTER;
+    home[i*3+1] = p.y * 300 + (Math.random() - 0.5) * HOME_JITTER;
     home[i*3+2] = p.z;
 
     // Start at home — image is shown first, particles hidden
@@ -340,21 +344,26 @@ function animate(ms) {
       pos[ix] += vel[ix] * dt; pos[iy] += vel[iy] * dt; pos[iz] += vel[iz] * dt;
 
     } else if (state === 'gather') {
-      // Spring back toward home
+      // Spring toward a breathing target so particles never freeze onto exact grid positions
+      const bx = home[ix] + Math.sin(t * 1.8 + ph[i]) * 4.5;
+      const by = home[iy] + Math.cos(t * 1.5 + ph[i]) * 4.5;
       const k = 5.5, d = damp(0.88, dt);
-      vel[ix] += (home[ix] - pos[ix]) * k * dt;
-      vel[iy] += (home[iy] - pos[iy]) * k * dt;
+      vel[ix] += (bx - pos[ix]) * k * dt;
+      vel[iy] += (by - pos[iy]) * k * dt;
       vel[iz] += (home[iz] - pos[iz]) * k * dt;
       vel[ix] *= d; vel[iy] *= d; vel[iz] *= d;
       pos[ix] += vel[ix] * dt; pos[iy] += vel[iy] * dt; pos[iz] += vel[iz] * dt;
       gpuAlpha[i] += (0.88 - gpuAlpha[i]) * Math.min(dt * 1.8, 0.1);
 
     } else if (state === 'fadein') {
-      // Breathe at home while image fades back in
-      const bx = home[ix] + Math.sin(t * 2.0 + ph[i]) * 1.5;
-      const by = home[iy] + Math.cos(t * 1.7 + ph[i]) * 1.5;
-      pos[ix] = bx; pos[iy] = by; pos[iz] = home[iz];
-      vel[ix] = vel[iy] = vel[iz] = 0;
+      // Continuous organic drift near home while image fades back in
+      const bx = home[ix] + Math.sin(t * 1.8 + ph[i]) * 4.5;
+      const by = home[iy] + Math.cos(t * 1.5 + ph[i]) * 4.5;
+      const ks = 3.5, ds = damp(0.90, dt);
+      vel[ix] += (bx - pos[ix]) * ks * dt;
+      vel[iy] += (by - pos[iy]) * ks * dt;
+      vel[ix] *= ds; vel[iy] *= ds;
+      pos[ix] += vel[ix] * dt; pos[iy] += vel[iy] * dt; pos[iz] = home[iz];
       const tgt = (1 - prog) * 0.88;
       gpuAlpha[i] += (tgt - gpuAlpha[i]) * Math.min(dt * 2.5, 0.14);
     }
