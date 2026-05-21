@@ -309,10 +309,24 @@ def make_sprite_png(assessment_id, force=False):
 
 # ── Status + orchestrator ─────────────────────────────────────────────────────
 
+def _is_stability_image(assessment_id):
+    """Return True only for square (Stability AI generated) images, not fallback photos."""
+    path = os.path.join(IMG_DIR, f"{assessment_id}.png")
+    if not os.path.exists(path):
+        return False
+    try:
+        from PIL import Image
+        img = Image.open(path)
+        w, h = img.size
+        return w == h
+    except Exception:
+        return False
+
+
 def art_status(assessment_id):
     """Fast check — no generation, no API calls."""
     return {
-        "has_image":  os.path.exists(os.path.join(IMG_DIR,  f"{assessment_id}.png")),
+        "has_image":  _is_stability_image(assessment_id),
         "has_sprite": os.path.exists(os.path.join(PNG_DIR,  f"{assessment_id}.png")),
         "has_particle_data": os.path.exists(
             os.path.join(CACHE_DIR, f"particle_data_{assessment_id}.json")),
