@@ -13,6 +13,5 @@ venv/
 # Generated cache — too large for git
 cache/assessment_*.json
 cache/summary_*.json
-cache/stamps_v2_*.json
 cache/particle_data_*.json
 cache/images/
