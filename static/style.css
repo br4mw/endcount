@@ -670,6 +670,108 @@ main { flex: 1; }
   letter-spacing: 0.06em;
 }
 
+/* ── Gallery ──────────────────────────────────────────────── */
+.gallery-header {
+  padding: 3rem 3rem 1.5rem;
+}
+
+.gallery-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 300;
+  color: var(--text);
+}
+
+.gallery-count {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+.gallery-class-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0 3rem 2rem;
+}
+
+.gcn-pill {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--muted);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.gcn-pill:hover { color: var(--text); border-color: var(--text); }
+.gcn-active { color: var(--text); border-color: var(--text); background: var(--surface); }
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 0 3rem 4rem;
+}
+
+.gallery-card {
+  display: block;
+  position: relative;
+  background: #1a1816;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+}
+
+.gallery-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+}
+
+.gallery-card-img {
+  display: block;
+  width: 100%;
+  height: 260px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.gallery-card-overlay {
+  padding: 0.85rem 1rem;
+  background: linear-gradient(to bottom, transparent, rgba(10,9,8,0.85));
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.gallery-card-cat {
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.gallery-card-name {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.25;
+}
+
+.gallery-card-sci {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: rgba(255,255,255,0.45);
+  margin-top: 0.2rem;
+}
+
 /* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 768px) {
   .site-header { padding: 1.5rem; flex-direction: column; gap: 0.25rem; }

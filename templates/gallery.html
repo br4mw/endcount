@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Illustrated Species · Endcount{% endblock %}
+
+{% block content %}
+<div class="gallery-header">
+  <h1 class="gallery-title">Illustrated Species</h1>
+  <p class="gallery-count">{{ total }} species with Audubon-style illustrations</p>
+</div>
+
+<nav class="gallery-class-nav">
+  <a href="/gallery" class="gcn-pill {% if not cls_filter %}gcn-active{% endif %}">All</a>
+  {% for cls in classes %}
+  <a href="/gallery?class={{ cls }}"
+     class="gcn-pill {% if cls_filter == cls %}gcn-active{% endif %}">
+    {{ cls | title }}
+  </a>
+  {% endfor %}
+</nav>
+
+<div class="gallery-grid">
+  {% for sp in species_list %}
+  <a href="/species/{{ sp.assessment_id }}" class="gallery-card cat-{{ sp.category_code }}-frame">
+    <img src="/api/source/{{ sp.assessment_id }}"
+         alt="{{ sp.common_name or sp.scientific_name }}"
+         class="gallery-card-img"
+         loading="lazy">
+    <div class="gallery-card-overlay">
+      <span class="gallery-card-cat cat-{{ sp.category_code }}">{{ sp.category_code }}</span>
+      <p class="gallery-card-name">{{ sp.common_name or sp.scientific_name }}</p>
+      {% if sp.common_name %}
+      <p class="gallery-card-sci">{{ sp.scientific_name }}</p>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -573,6 +573,49 @@ def enrich_common_names(assessments):
     return assessments
 
 
+# ── Gallery ───────────────────────────────────────────────────────────────────
+
+def _build_gallery_list():
+    """Return vertebrate species that have genuine Stability AI (square) images, mammals first."""
+    from PIL import Image as PILImage
+    all_verts = [v for cat in _vertebrate_by_cat.values() for v in cat]
+    verts_by_id = {v["assessment_id"]: v for v in all_verts}
+    result = []
+    for fname in os.listdir(vec.IMG_DIR):
+        if not fname.endswith(".png"):
+            continue
+        aid = int(fname.replace(".png", ""))
+        if aid not in verts_by_id:
+            continue
+        path = os.path.join(vec.IMG_DIR, fname)
+        try:
+            img = PILImage.open(path)
+            if img.size[0] == img.size[1]:
+                result.append(verts_by_id[aid])
+        except Exception:
+            continue
+    result.sort(key=lambda v: (
+        0 if v["class_name"] == "MAMMALIA" else 1,
+        v.get("common_name") or v["scientific_name"],
+    ))
+    return result
+
+
+@app.route("/gallery")
+def gallery():
+    all_illustrated = _build_gallery_list()
+    cls_filter = request.args.get("class", "").upper().strip()
+    species_list = [s for s in all_illustrated if s["class_name"] == cls_filter] if cls_filter else all_illustrated
+    classes = sorted({s["class_name"] for s in all_illustrated},
+                     key=lambda c: (0 if c == "MAMMALIA" else 1, c))
+    return render_template("gallery.html",
+        species_list=species_list,
+        cls_filter=cls_filter,
+        classes=classes,
+        total=len(species_list),
+    )
+
+
 @app.route("/")
 def index():
     if not request.args:
