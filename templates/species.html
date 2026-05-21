@@ -17,14 +17,48 @@
 <div class="species-page">
 
   <div class="top-nav">
-    <a href="/?category={{ back_category }}" class="back-link">&#8592; Back to {{ back_category }}</a>
+    <a href="/?categories={{ back_category }}&classes=MAMMALIA" class="back-link">&#8592; Back</a>
     <a href="/species/{{ assessment.assessment_id }}/particles" class="particles-top-link">View particle system &#8594;</a>
   </div>
 
-  {% if has_art %}
-  <div class="art-section">
-    <div class="art-layout {% if not has_source_photo %}art-layout--no-photo{% endif %}">
+  <div class="species-lead {% if not has_art %}species-lead--no-art{% endif %}">
+
+    <div class="lead-text">
+      <div class="species-hero">
+        <span class="hero-category cat-{{ category_code }}">{{ category_label }}</span>
+        <h1 class="hero-title">{{ common or taxon.scientific_name }}</h1>
+        {% if common %}
+        <p class="hero-scientific">{{ taxon.scientific_name }}</p>
+        {% endif %}
+        {% if year %}
+        <p class="hero-year">Last assessed {{ year }}</p>
+        {% endif %}
+      </div>
+
+      {% if summary %}
+      <section class="species-summary">
+        <p class="summary-text">{{ summary }}</p>
+      </section>
+      {% endif %}
+    </div>
+
+    {% if has_art %}
+    <div class="lead-art">
       <div id="art-canvas-container"></div>
+      <div class="art-meta">
+        {% if population is not none %}
+          {% if population == 0 %}
+          <span class="art-population-label art-zero">0 individuals remain in the wild</span>
+          {% else %}
+          <span class="art-population-label">
+            Each of the {{ "{:,}".format(population) }} marks represents one individual
+            {% if not supp.population_size %}<span class="art-estimated"> (estimated)</span>{% endif %}
+          </span>
+          {% endif %}
+        {% else %}
+        <span class="art-population-label art-unknown">Population undocumented</span>
+        {% endif %}
+      </div>
       {% if has_source_photo %}
       <div class="art-source-photo">
         <img src="/api/source/{{ assessment.assessment_id }}"
@@ -34,41 +68,9 @@
       </div>
       {% endif %}
     </div>
-    <div class="art-meta">
-      <span class="art-species-label cat-{{ category_code }}">{{ category_label }}</span>
-      {% if population is not none %}
-        {% if population == 0 %}
-        <span class="art-population-label art-zero">0 individuals remain in the wild</span>
-        {% else %}
-        <span class="art-population-label">
-          Each of the {{ "{:,}".format(population) }} marks represents one individual
-          {% if not supp.population_size %}<span class="art-estimated"> (estimated)</span>{% endif %}
-        </span>
-        {% endif %}
-      {% else %}
-      <span class="art-population-label art-unknown">Population undocumented</span>
-      {% endif %}
-    </div>
-    </div>
-  </div>
-  {% endif %}
-
-  <div class="species-hero">
-    <span class="hero-category cat-{{ category_code }}">{{ category_label }}</span>
-    <h1 class="hero-title">{{ common or taxon.scientific_name }}</h1>
-    {% if common %}
-    <p class="hero-scientific">{{ taxon.scientific_name }}</p>
     {% endif %}
-    {% if year %}
-    <p class="hero-year">Last assessed {{ year }}</p>
-    {% endif %}
-  </div>
 
-  {% if summary %}
-  <section class="species-summary">
-    <p class="summary-text">{{ summary }}</p>
-  </section>
-  {% endif %}
+  </div>
 
   <div class="species-body">
 
