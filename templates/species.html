@@ -2,17 +2,6 @@
 
 {% block title %}{{ taxon.scientific_name }} · Endcount{% endblock %}
 
-{% block head %}
-{% if has_art %}
-<script>
-  window.ASSESSMENT_ID   = {{ assessment.assessment_id }};
-  window.POPULATION      = {{ population if population is not none else 'null' }};
-  window.CATEGORY        = "{{ category_code }}";
-  window.SCIENTIFIC_NAME = "{{ taxon.scientific_name }}";
-</script>
-{% endif %}
-{% endblock %}
-
 {% block content %}
 <div class="species-page">
 
@@ -21,56 +10,49 @@
     <a href="/species/{{ assessment.assessment_id }}/particles" class="particles-top-link">View particle system &#8594;</a>
   </div>
 
-  <div class="species-lead {% if not has_art %}species-lead--no-art{% endif %}">
-
-    <div class="lead-text">
-      <div class="species-hero">
-        <span class="hero-category cat-{{ category_code }}">{{ category_label }}</span>
-        <h1 class="hero-title">{{ common or taxon.scientific_name }}</h1>
-        {% if common %}
-        <p class="hero-scientific">{{ taxon.scientific_name }}</p>
-        {% endif %}
-        {% if year %}
-        <p class="hero-year">Last assessed {{ year }}</p>
-        {% endif %}
-      </div>
-
-      {% if summary %}
-      <section class="species-summary">
-        <p class="summary-text">{{ summary }}</p>
-      </section>
-      {% endif %}
-    </div>
-
-    {% if has_art %}
-    <div class="lead-art">
-      <div id="art-canvas-container"></div>
-      <div class="art-meta">
-        {% if population is not none %}
-          {% if population == 0 %}
-          <span class="art-population-label art-zero">0 individuals remain in the wild</span>
-          {% else %}
-          <span class="art-population-label">
-            Each of the {{ "{:,}".format(population) }} marks represents one individual
-            {% if not supp.population_size %}<span class="art-estimated"> (estimated)</span>{% endif %}
-          </span>
-          {% endif %}
-        {% else %}
-        <span class="art-population-label art-unknown">Population undocumented</span>
-        {% endif %}
-      </div>
-      {% if has_source_photo %}
-      <div class="art-source-photo">
-        <img src="/api/source/{{ assessment.assessment_id }}"
-             alt="{{ taxon.scientific_name }}"
-             class="source-photo-img">
-        <p class="source-photo-label">Reference photo</p>
-      </div>
-      {% endif %}
-    </div>
+  <div class="species-hero">
+    <span class="hero-category cat-{{ category_code }}">{{ category_label }}</span>
+    <h1 class="hero-title">{{ common or taxon.scientific_name }}</h1>
+    {% if common %}
+    <p class="hero-scientific">{{ taxon.scientific_name }}</p>
     {% endif %}
-
+    {% if year %}
+    <p class="hero-year">Last assessed {{ year }}</p>
+    {% endif %}
   </div>
+
+  {% if has_source_photo %}
+  <div class="hero-image-wrap">
+    <img src="/api/source/{{ assessment.assessment_id }}"
+         alt="{{ common or taxon.scientific_name }}"
+         class="hero-img">
+    <div class="hero-image-meta">
+      {% if population is not none %}
+        {% if population == 0 %}
+        <span class="art-population-label art-zero">0 individuals remain in the wild</span>
+        {% else %}
+        <span class="art-population-label">
+          Each particle in the <a href="/species/{{ assessment.assessment_id }}/particles" class="inline-link">particle view</a>
+          represents one of the {{ "{:,}".format(population) }} individuals remaining
+          {% if not supp.population_size %}<span class="art-estimated"> (estimated)</span>{% endif %}
+        </span>
+        {% endif %}
+      {% else %}
+      <span class="art-population-label art-unknown">Population size undocumented</span>
+      {% endif %}
+    </div>
+  </div>
+  {% elif generating %}
+  <div class="hero-generating">
+    <p class="generating-label">Generating illustration…</p>
+  </div>
+  {% endif %}
+
+  {% if summary %}
+  <section class="species-summary">
+    <p class="summary-text">{{ summary }}</p>
+  </section>
+  {% endif %}
 
   <div class="species-body">
 
@@ -141,18 +123,13 @@
   </div>
 </div>
 
-{% if has_art %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
-<script src="{{ url_for('static', filename='sketch.js') }}"></script>
-{% endif %}
-
 {% if generating %}
 <script>
 (function poll() {
   fetch('/api/art-status/{{ assessment.assessment_id }}')
     .then(r => r.json())
     .then(s => {
-      if (s.has_sprite) {
+      if (s.has_image) {
         window.location.reload();
       } else if (s.generating) {
         setTimeout(poll, 4000);

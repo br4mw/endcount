@@ -14,4 +14,3 @@ venv/
 cache/assessment_*.json
 cache/summary_*.json
 cache/particle_data_*.json
-cache/images/

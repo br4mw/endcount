@@ -712,7 +712,6 @@ def species(assessment_id):
         trend=_extract_trend(assessment.get("population_trend")),
         supp=supp,
         back_category=request.args.get("from", "EX"),
-        has_art=art["has_sprite"],
         has_source_photo=art["has_image"],
         generating=art["generating"],
         population=population,
