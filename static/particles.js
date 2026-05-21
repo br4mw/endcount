@@ -11,7 +11,7 @@ const N = (CAT === 'EX' || CAT === 'EW')
   : (POPULATION == null ? 2800 : Math.max(30, Math.min(POPULATION, 10000)));
 
 // Particle size tuned for the 520px-tall embedded container
-const BASE_SZ = Math.max(8, Math.min(28, 28 * Math.sqrt(2800 / N)));
+const BASE_SZ = Math.max(16, Math.min(56, 56 * Math.sqrt(2800 / N)));
 
 function classToMode(cls) {
   if (cls.includes('aves'))                                           return 'flock';
