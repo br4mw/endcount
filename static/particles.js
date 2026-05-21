@@ -168,8 +168,8 @@ function init(particles) {
     // in the wider container, and the camera frustum covers the full element
     // width — the 9% reduction aligns the particle cluster with the actual
     // displayed image region.
-    home[i*3]   =  p.x * 272 + (Math.random() - 0.5) * HOME_JITTER;
-    home[i*3+1] = -p.y * 272 + (Math.random() - 0.5) * HOME_JITTER;
+    home[i*3]   = p.x * 272 + (Math.random() - 0.5) * HOME_JITTER;
+    home[i*3+1] = p.y * 272 + (Math.random() - 0.5) * HOME_JITTER;
     home[i*3+2] = p.z;
 
     // Start at home — image is shown first, particles hidden
@@ -185,9 +185,9 @@ function init(particles) {
     const kSpeed = 50 + Math.random() * 130;
     const kA     = Math.random() * Math.PI * 2;
     const kB     = (Math.random() - 0.5) * Math.PI;
-    kickVel[i*3]   = kSpeed * Math.cos(kB) * Math.cos(kA);
-    kickVel[i*3+1] = kSpeed * Math.cos(kB) * Math.sin(kA);
-    kickVel[i*3+2] = kSpeed * Math.sin(kB) * 0.3;
+    kickVel[i*3]   =  kSpeed * Math.cos(kB) * Math.cos(kA);
+    kickVel[i*3+1] = -kSpeed * Math.cos(kB) * Math.sin(kA);  // reversed Y scatter
+    kickVel[i*3+2] =  kSpeed * Math.sin(kB) * 0.3;
 
     gpuCol[i*3]   = p.r / 255;
     gpuCol[i*3+1] = p.g / 255;
