@@ -80,8 +80,15 @@ geo.setAttribute('aColor',   new THREE.BufferAttribute(gpuCol,   3));
 geo.setAttribute('aSize',    new THREE.BufferAttribute(gpuSz,    1).setUsage(THREE.DynamicDrawUsage));
 geo.setAttribute('aAlpha',   new THREE.BufferAttribute(gpuAlpha, 1).setUsage(THREE.DynamicDrawUsage));
 
-// Soft gaussian disk — NormalBlending works over the white image background
+// Sprite or gaussian-disk fallback.
+// uSprite / uUseSprite: set after async texture load.
+// uBright: 1.0 in light mode, boosted in dark mode so additive blending is visible.
 const mat = new THREE.ShaderMaterial({
+  uniforms: {
+    uSprite:    { value: null },
+    uUseSprite: { value: 0.0 },
+    uBright:    { value: 1.0 },
+  },
   vertexShader: `
     attribute float aSize;
     attribute vec3  aColor;
@@ -97,14 +104,22 @@ const mat = new THREE.ShaderMaterial({
     }
   `,
   fragmentShader: `
-    varying vec3  vColor;
-    varying float vAlpha;
+    uniform sampler2D uSprite;
+    uniform float     uUseSprite;
+    uniform float     uBright;
+    varying vec3      vColor;
+    varying float     vAlpha;
     void main() {
-      vec2  uv   = gl_PointCoord - 0.5;
-      float d    = dot(uv, uv) * 4.0;
-      float soft = exp(-d * 5.0);
-      if (soft < 0.02) discard;
-      gl_FragColor = vec4(vColor, soft * vAlpha);
+      float mask;
+      if (uUseSprite > 0.5) {
+        mask = texture2D(uSprite, gl_PointCoord).a;
+      } else {
+        vec2  uv = gl_PointCoord - 0.5;
+        float d  = dot(uv, uv) * 4.0;
+        mask = exp(-d * 5.0);
+      }
+      if (mask < 0.02) discard;
+      gl_FragColor = vec4(vColor * uBright, mask * vAlpha);
     }
   `,
   blending:    THREE.NormalBlending,
@@ -117,7 +132,8 @@ scene.add(points);
 
 // ── Theme switch (called by toggle button) ────────────────────────────────────
 window.setHeroDark = function(dark) {
-  mat.blending    = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
+  mat.blending = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
+  mat.uniforms.uBright.value = dark ? 3.0 : 1.0;
   mat.needsUpdate = true;
 };
 
@@ -158,6 +174,17 @@ async function fetchParticleData() {
     if (!r.ok) return null;
     return await r.json();
   } catch { return null; }
+}
+
+async function loadSpriteTexture() {
+  return new Promise(resolve => {
+    new THREE.TextureLoader().load(
+      `/api/sprite-png/${AID}`,
+      tex => { tex.minFilter = THREE.LinearFilter; resolve(tex); },
+      undefined,
+      () => resolve(null)
+    );
+  });
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -433,7 +460,13 @@ function animate(ms) {
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 (async () => {
-  const data = await fetchParticleData();
+  const [data, spriteTex] = await Promise.all([fetchParticleData(), loadSpriteTexture()]);
+
+  if (spriteTex) {
+    mat.uniforms.uSprite.value    = spriteTex;
+    mat.uniforms.uUseSprite.value = 1.0;
+  }
+
   const particles = data?.particles?.length > 0
     ? data.particles
     : [{ x: 0, y: 0, z: 0, r: 80, g: 60, b: 40 }];
