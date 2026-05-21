@@ -6,7 +6,7 @@ import anthropic
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlencode
-from flask import Flask, render_template, abort, request, send_file, jsonify
+from flask import Flask, render_template, abort, request, send_file, jsonify, redirect
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -575,6 +575,9 @@ def enrich_common_names(assessments):
 
 @app.route("/")
 def index():
+    if not request.args:
+        return redirect("/?categories=CR&classes=MAMMALIA")
+
     available_cats = [c for c in CATEGORY_ORDER if c in _vertebrate_by_cat]
 
     cats_param    = request.args.get("categories", "").strip()
