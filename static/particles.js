@@ -130,8 +130,12 @@ document.dispatchEvent(new CustomEvent('particlesReady'));
 // scatter (10s): particles launch from animal shape and animate freely
 // gather  (5s) : particles return to home positions
 // fadein  (5s) : particles fade out, image 0→1
-const STATES = ['show', 'fadeout', 'scatter', 'gather', 'fadein'];
-const DUR    = { show: 4, fadeout: 2, scatter: 10, gather: 5, fadein: 5 };
+// linger  (4s) : [extinct only] image=1.0, particles dissolve to nothing
+const IS_EXTINCT = POPULATION === 0;
+const STATES = IS_EXTINCT
+  ? ['show', 'fadeout', 'scatter', 'gather', 'fadein', 'linger']
+  : ['show', 'fadeout', 'scatter', 'gather', 'fadein'];
+const DUR    = { show: 4, fadeout: 2, scatter: 10, gather: 5, fadein: 5, linger: 4 };
 
 let state   = 'show';
 let stTimer = 0;
@@ -317,6 +321,7 @@ function animate(ms) {
   else if (state === 'scatter') setImgOpacity(0);
   else if (state === 'gather')  setImgOpacity(0);
   else if (state === 'fadein')  setImgOpacity(prog);
+  else if (state === 'linger')  setImgOpacity(1);
 
   const scatterRelease = state === 'scatter' ? Math.min(1, stTimer / 3.5) : 0;
 
@@ -373,7 +378,8 @@ function animate(ms) {
       gpuAlpha[i] += (0.88 - gpuAlpha[i]) * Math.min(dt * 1.8, 0.1);
 
     } else if (state === 'fadein') {
-      // Continuous organic drift near home while image fades back in
+      // Continuous organic drift near home while image fades back in.
+      // For extinct species, stop fading at 0.30 so linger can carry the rest.
       const bx = home[ix] + Math.sin(t * 1.8 + ph[i]) * 4.5;
       const by = home[iy] + Math.cos(t * 1.5 + ph[i]) * 4.5;
       const ks = 3.5, ds = damp(0.90, dt);
@@ -381,8 +387,20 @@ function animate(ms) {
       vel[iy] += (by - pos[iy]) * ks * dt;
       vel[ix] *= ds; vel[iy] *= ds;
       pos[ix] += vel[ix] * dt; pos[iy] += vel[iy] * dt; pos[iz] = home[iz];
-      const tgt = (1 - prog) * 0.88;
+      const tgt = IS_EXTINCT ? (0.30 + (1 - prog) * 0.58) : (1 - prog) * 0.88;
       gpuAlpha[i] += (tgt - gpuAlpha[i]) * Math.min(dt * 2.5, 0.14);
+
+    } else if (state === 'linger') {
+      // Image is fully back; particles dissolve slowly — the last of the animal fading.
+      const bx = home[ix] + Math.sin(t * 1.8 + ph[i]) * 4.5;
+      const by = home[iy] + Math.cos(t * 1.5 + ph[i]) * 4.5;
+      const ks = 3.5, ds = damp(0.90, dt);
+      vel[ix] += (bx - pos[ix]) * ks * dt;
+      vel[iy] += (by - pos[iy]) * ks * dt;
+      vel[ix] *= ds; vel[iy] *= ds;
+      pos[ix] += vel[ix] * dt; pos[iy] += vel[iy] * dt; pos[iz] = home[iz];
+      const tgt = (1 - prog) * 0.30;
+      gpuAlpha[i] += (tgt - gpuAlpha[i]) * Math.min(dt * 1.5, 0.08);
     }
 
     // Wrap bounds during scatter

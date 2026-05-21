@@ -35,6 +35,9 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
+ALPHA_DIR = os.path.join(CACHE_DIR, "alpha")
+os.makedirs(ALPHA_DIR, exist_ok=True)
+
 VERT_PATH = os.path.join(CACHE_DIR, "_vertebrates.json")
 
 def _load_vertebrates():
@@ -299,6 +302,69 @@ def source_image(assessment_id):
         abort(404)
     resp = send_file(path, mimetype="image/png")
     resp.headers["Access-Control-Allow-Origin"] = "*"
+    return resp
+
+
+def _make_alpha_png(assessment_id):
+    """Flood-fill white background from corners, cache result as transparent PNG."""
+    alpha_path = os.path.join(ALPHA_DIR, f"{assessment_id}.png")
+    if os.path.exists(alpha_path):
+        return alpha_path
+
+    source_path = os.path.join(vec.IMG_DIR, f"{assessment_id}.png")
+    if not os.path.exists(source_path):
+        return None
+
+    from PIL import Image
+    from collections import deque
+
+    img = Image.open(source_path).convert("RGBA")
+    w, h = img.size
+    px = img.load()
+
+    THRESH = 240
+
+    def is_bg(x, y):
+        r, g, b, _ = px[x, y]
+        return r >= THRESH and g >= THRESH and b >= THRESH
+
+    visited = set()
+    queue = deque()
+
+    for x in range(w):
+        for yi in (0, h - 1):
+            if is_bg(x, yi) and (x, yi) not in visited:
+                visited.add((x, yi))
+                queue.append((x, yi))
+    for y in range(h):
+        for xi in (0, w - 1):
+            if is_bg(xi, y) and (xi, y) not in visited:
+                visited.add((xi, y))
+                queue.append((xi, y))
+
+    while queue:
+        x, y = queue.popleft()
+        px[x, y] = (255, 255, 255, 0)
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < w and 0 <= ny < h and (nx, ny) not in visited and is_bg(nx, ny):
+                visited.add((nx, ny))
+                queue.append((nx, ny))
+
+    img.save(alpha_path, "PNG")
+    return alpha_path
+
+
+@app.route("/api/source-alpha/<int:assessment_id>")
+def source_alpha_image(assessment_id):
+    path = _make_alpha_png(assessment_id)
+    if not path:
+        path = os.path.join(vec.IMG_DIR, f"{assessment_id}.png")
+        if not os.path.exists(path):
+            abort(404)
+    resp = send_file(path, mimetype="image/png")
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    resp.headers["Cache-Control"] = "public, max-age=86400"
     return resp
 
 

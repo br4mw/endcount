@@ -37,7 +37,7 @@
   {% if has_source_photo %}
   <div class="hero-image-wrap cat-{{ category_code }}-frame" id="art-container">
     <img id="species-art-img"
-         src="/api/source/{{ assessment.assessment_id }}"
+         src="/api/source-alpha/{{ assessment.assessment_id }}"
          alt="{{ common or taxon.scientific_name }}"
          class="hero-img">
     {% if has_particle_data %}

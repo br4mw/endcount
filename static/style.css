@@ -635,10 +635,6 @@ main { flex: 1; }
   border-color: rgba(255,255,255,0.08);
 }
 
-.hero-image-wrap.hero-dark .hero-img {
-  mix-blend-mode: screen;
-}
-
 .hero-image-wrap.hero-dark .hero-image-meta {
   background: #111009;
   border-top-color: rgba(255,255,255,0.08);
