@@ -626,7 +626,69 @@ main { flex: 1; }
   overflow: hidden;
   background: #ffffff;
   border: 1px solid var(--border);
+  transition: background 0.5s ease, border-color 0.5s ease;
 }
+
+/* ── Dark mode hero ───────────────────────────────────────── */
+.hero-image-wrap.hero-dark {
+  background: #111009;
+  border-color: rgba(255,255,255,0.08);
+}
+
+.hero-image-wrap.hero-dark .hero-img {
+  mix-blend-mode: screen;
+}
+
+.hero-image-wrap.hero-dark .hero-image-meta {
+  background: #111009;
+  border-top-color: rgba(255,255,255,0.08);
+}
+
+.hero-image-wrap.hero-dark .art-population-label {
+  color: rgba(255,255,255,0.45);
+}
+
+.hero-image-wrap.hero-dark .art-zero    { color: #e8927a; }
+.hero-image-wrap.hero-dark .inline-link { color: #c8a97a; border-bottom-color: rgba(200,169,122,0.35); }
+
+/* ── Theme toggle button ──────────────────────────────────── */
+.hero-theme-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(0,0,0,0.12);
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 20px;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 0.25s, border-color 0.25s;
+  backdrop-filter: blur(4px);
+}
+
+.hero-theme-btn:hover {
+  background: rgba(0,0,0,0.22);
+}
+
+.hero-image-wrap.hero-dark .hero-theme-btn {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.15);
+}
+
+.hero-image-wrap.hero-dark .hero-theme-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Show sun icon in light mode, moon in dark mode */
+.htb-icon { display: none; color: var(--text); transition: color 0.25s; }
+.htb-light { display: inline; }
+.hero-image-wrap.hero-dark .htb-light { display: none; }
+.hero-image-wrap.hero-dark .htb-dark  { display: inline; color: rgba(255,255,255,0.75); }
 
 .hero-img {
   display: block;
@@ -655,12 +717,14 @@ main { flex: 1; }
   padding: 0.9rem 1.5rem;
   background: #ffffff;
   border-top: 1px solid var(--border);
+  transition: background 0.5s ease, border-color 0.5s ease;
 }
 
 .art-population-label {
   font-size: 0.75rem;
   color: var(--muted);
   letter-spacing: 0.02em;
+  transition: color 0.4s ease;
 }
 
 .art-zero { color: var(--cat-CR); font-weight: 400; }

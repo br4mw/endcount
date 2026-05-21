@@ -115,6 +115,15 @@ const mat = new THREE.ShaderMaterial({
 const points = new THREE.Points(geo, mat);
 scene.add(points);
 
+// ── Theme switch (called by toggle button) ────────────────────────────────────
+window.setHeroDark = function(dark) {
+  mat.blending    = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
+  mat.needsUpdate = true;
+};
+
+// Let the toggle script know the material is ready
+document.dispatchEvent(new CustomEvent('particlesReady'));
+
 // ── State machine ─────────────────────────────────────────────────────────────
 // show    (4s) : image=1.0, particles hidden at home
 // fadeout (2s) : image 1→0, particles fade in at home

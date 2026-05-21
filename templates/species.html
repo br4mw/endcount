@@ -43,6 +43,10 @@
     {% if has_particle_data %}
     <div id="art-canvas-wrap" class="art-canvas-wrap"></div>
     {% endif %}
+    <button id="hero-theme-btn" class="hero-theme-btn" aria-pressed="false" title="Toggle dark mode">
+      <span class="htb-icon htb-light">&#9788;</span>
+      <span class="htb-icon htb-dark">&#9790;</span>
+    </button>
     <div class="hero-image-meta">
       {% if population is not none %}
         {% if population == 0 %}
@@ -153,6 +157,35 @@
 })();
 </script>
 {% endif %}
+
+<script>
+(function () {
+  const wrap = document.getElementById('art-container');
+  const btn  = document.getElementById('hero-theme-btn');
+  if (!wrap || !btn) return;
+
+  const KEY = 'hero-dark';
+  let dark = localStorage.getItem(KEY) === '1';
+
+  function apply() {
+    wrap.classList.toggle('hero-dark', dark);
+    btn.setAttribute('aria-pressed', dark);
+    if (window.setHeroDark) window.setHeroDark(dark);
+  }
+
+  btn.addEventListener('click', () => {
+    dark = !dark;
+    localStorage.setItem(KEY, dark ? '1' : '0');
+    apply();
+  });
+
+  // Apply saved preference immediately (before particles.js loads)
+  apply();
+
+  // Re-apply once particles module has initialised its material
+  document.addEventListener('particlesReady', apply);
+})();
+</script>
 
 {% if has_particle_data %}
 <script type="module" src="{{ url_for('static', filename='particles.js') }}"></script>
