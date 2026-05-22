@@ -180,7 +180,11 @@ async function loadSpriteTexture() {
   return new Promise(resolve => {
     new THREE.TextureLoader().load(
       `/api/sprite-png/${AID}`,
-      tex => { tex.minFilter = THREE.LinearFilter; resolve(tex); },
+      tex => {
+        tex.minFilter = THREE.LinearFilter;
+        tex.flipY     = false;  // gl_PointCoord y is already top→bottom
+        resolve(tex);
+      },
       undefined,
       () => resolve(null)
     );
